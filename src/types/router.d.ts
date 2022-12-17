@@ -1,28 +1,30 @@
+type IsParameter<Part> = Part extends `[${infer ParamName}]`
+  ? ParamName
+  : never;
 
-type Split<S extends string, D extends string> = S extends `${infer A}${D}${infer B}` ? [A, ...Split<B, D>] : [S]
-type Without<T, U> = T extends [infer Head, ...infer Tail]
-  ? [
-    ...(Head extends (U extends unknown[] ? U[number] : U) ? [] : [Head]),
-    ...Without<Tail, U>
-  ]
-  : [];
+type FilterOutOptional<TPart extends string> = TPart extends `${infer TName}?`
+  ? never
+  : TPart;
 
-type FilterStartsWith<TList extends string[], TToken extends string, Arr extends string[] = []> =
-  TList extends [infer TEntry, ...infer TRestEntries]
-  ? TRestEntries extends string[]
-  ? TEntry extends `${TToken}${infer TVariableName}`
-  ? FilterStartsWith<TRestEntries, TToken, [...Arr, TVariableName]>
-  : FilterStartsWith<TRestEntries, TToken, Arr>
-  : Arr
-  : Arr;
+type FilterInOptional<TPart extends string> = TPart extends `${infer TName}?`
+  ? TPart
+  : never;
 
-type StartsWith<T extends string, F extends string> = T extends `${F}${infer F}` ? F : never;
+type FilteredParts<Path> = Path extends `${infer PartA}/${infer PartB}`
+  ? IsParameter<PartA> | FilteredParts<PartB>
+  : IsParameter<Path>;
+type DefaultType = string | number;
+type ParamValue<Key> = Key extends `${infer Anything}?`
+  ? DefaultType | null
+  : DefaultType;
+type RemoveOptionalTag<Key> = Key extends `${infer Name}?` ? Name : Key;
 
+type NonOptionalParts<Path> = {
+  [Key in FilterOutOptional<FilteredParts<Path>> as RemoveOptionalTag<Key>]: DefaultType;
+};
 
-type Unionize<TTokens extends any[], TAcc extends any = ''> = TTokens extends [infer TToken, ...infer TRest]
-  ? TRest extends any[]
-  ? Unionize<TRest, TAcc | TToken>
-  : TAcc | TToken
-  : TAcc;
+type OptionalParts<Path> = {
+  [Key in FilterInOptional<FilteredParts<Path>> as RemoveOptionalTag<Key>]: DefaultType;
+};
 
-export type RouteParameters<TPath extends string> = Record<Exclude<Unionize<FilterStartsWith<Without<Split<TPath, '/'>, "">, ':'>>, ''>, string>;
+export type RouteParams<TPath extends string> = NonOptionalParts<TPath> & Partial<OptionalParts<TPath>>;

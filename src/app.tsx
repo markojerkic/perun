@@ -1,13 +1,19 @@
-import { Router } from './router';
+import { Route } from "./router";
 
-export function App() {
-
-  const {createRoute} = Router();
-  const resp = createRoute({route: '/:en/test', params: {lng: 'en'}});
-
+const TestComponent = (props: { lang?: string | number, id: string | number }) => {
   return (
     <>
-      <div className="text-xl">{resp}</div>
+      <p>hejjja, {props.lang}</p>
+      <div>{props.id}</div>
+    </>
+  );
+}
+
+export function App() {
+  const t = TestComponent;
+  return (
+    <>
+      <Route path={'/[lang?]/items/[id]'} render={(props) => <TestComponent lang={props.lang} id={props.id} />} />
     </>
   )
 }
