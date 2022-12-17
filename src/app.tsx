@@ -13,7 +13,8 @@ export function App() {
   const t = TestComponent;
   return (
     <>
-      <Route path={'/[lang?]/items/[id]'} render={(props) => <TestComponent lang={props.lang} id={props.id} />} />
+      <Route path={'/[lang?]/items/[id]'} currentRoute={window.location.href}
+        render={(props) => <TestComponent lang={props.lang} id={props.id} />} />
     </>
   )
 }

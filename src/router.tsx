@@ -61,12 +61,12 @@ const matches = <TRoute extends string>({ route, testRoute }: { route: string, t
 
 type RouteOptions<Path extends string> = {
   path: Path;
+  currentRoute: Path;
   render: (props: RouteParams<Path>) => JSXInternal.Element
 };
 
-export const Route = <Path extends string>({ path, render }: RouteOptions<Path>) => {
-  console.log(render);
-  const params = matches({route: path, testRoute: window.location.href});
+export const Route = <TRoute extends string>({ path, currentRoute, render }: RouteOptions<TRoute>) => {
+  const params = matches({route: path, testRoute: currentRoute });
   if (!params) {
     return <></>
   }
