@@ -61,19 +61,23 @@ const matches = <TRoute extends string>({ currentRoute: route, routerPattern: te
 }
 
 type RouteOptions<Path extends string> = {
-  routerPattern: Path;
-  renderComponent: (props: RouteParams<Path>) => JSXInternal.Element
+  [routeName: string]: {
+    routerPattern: Path;
+    renderComponent: (props: RouteParams<Path>) => JSXInternal.Element
+  }
 };
 
-export const Router = <TRoute extends string, TCurrentRoute extends string>({ routerPatterns, currentRoute }: { routerPatterns: RouteOptions<TRoute>[], currentRoute: TCurrentRoute }) => {
+export const Router = <TRoute extends string, TCurrentRoute extends string>({ routerPatterns, currentRoute }: { routerPatterns: RouteOptions<TRoute>, currentRoute: TCurrentRoute }) => {
   const match = useMemo(() => {
-    return routerPatterns
+    return Object.keys(routerPatterns)
+      .map(routeName => routerPatterns[routeName])
       .map(route => ({ match: matches({ currentRoute, routerPattern: route.routerPattern }), route }))
       .find(match => !!match && !!match.match);
   }, [currentRoute, routerPatterns]);
 
+
   if (!match?.match) {
-    return ({ Router: <div>Nema odgovarajuće rute</div> })
+    return ({ Router: <div>Nema odgovarajuće rute</div>, routerPatterns })
   }
 
   return {
@@ -81,7 +85,8 @@ export const Router = <TRoute extends string, TCurrentRoute extends string>({ ro
       <>
         {match.route.renderComponent(match.match)}
       </>
-    )
+    ),
+    routerPatterns
   };
 }
 
