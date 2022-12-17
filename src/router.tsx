@@ -1,3 +1,4 @@
+import { useMemo } from "preact/hooks";
 import { JSXInternal } from "preact/src/jsx";
 import { RouteParams } from "./types/router";
 
@@ -61,18 +62,23 @@ const matches = <TRoute extends string>({ route, testRoute }: { route: string, t
 
 type RouteOptions<Path extends string> = {
   path: Path;
-  currentRoute: Path;
   render: (props: RouteParams<Path>) => JSXInternal.Element
 };
 
-export const Route = <TRoute extends string>({ path, currentRoute, render }: RouteOptions<TRoute>) => {
-  const params = matches({route: path, testRoute: currentRoute });
-  if (!params) {
-    return <></>
+export const Router = <TRoute extends string>({ routes, currentRoute }: { routes: RouteOptions<TRoute>[], currentRoute: TRoute }) => {
+  const match = useMemo(() => {
+    return routes
+      .map(route => ({ match: matches({ route: route.path, testRoute: currentRoute }), route }))
+      .find(match => match.match);
+  }, [currentRoute, routes]);
+
+  if (!match?.match) {
+    return <div>Nema odgovarajuće rute</div>
   }
+
   return (
     <>
-      {render(params)}
+      {match.route.render(match.match)}
     </>
   );
 }

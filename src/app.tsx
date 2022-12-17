@@ -1,4 +1,5 @@
-import { Route } from "./router";
+import { Router } from "./router";
+import { useState } from 'preact/hooks';
 
 const TestComponent = (props: { lang?: string | number, id: string | number }) => {
   return (
@@ -10,11 +11,15 @@ const TestComponent = (props: { lang?: string | number, id: string | number }) =
 }
 
 export function App() {
-  const t = TestComponent;
+  const [currentRoute] = useState(window.location.href);
+  const [route] = useState('/[lang?]/items/[id]');
+
   return (
     <>
-      <Route path={'/[lang?]/items/[id]'} currentRoute={window.location.href}
-        render={(props) => <TestComponent lang={props.lang} id={props.id} />} />
+      <Router routes={[{
+        path: route,
+        render: (props) => <TestComponent lang={props.lang} id={props.id} />
+      }]} currentRoute={currentRoute} />
     </>
   )
 }
