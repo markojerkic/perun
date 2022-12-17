@@ -1,21 +1,75 @@
 import { JSXInternal } from "preact/src/jsx";
 import { RouteParams } from "./types/router";
 
+
+type PathPart = {
+  name: string,
+  isVariable: boolean,
+  isOptional: boolean
+}
+
+const splitRoute = (route: string) => route.split('/').filter(part => !!part && part !== '');
+
+const createPathParts = (route: string) => {
+  const pathParts = splitRoute(route)
+    .map(pathPart => ({
+      name: pathPart.replace('[', '').replace(']', '').replace('?', ''),
+      isVariable: pathPart.includes('[') && pathPart.includes(']'),
+      isOptional: pathPart.includes('?')
+    }))
+  return pathParts;
+}
+
+const matches = <TRoute extends string>({ route, testRoute }: { route: string, testRoute: TRoute }): RouteParams<TRoute> | undefined => {
+  const routeParts = createPathParts(testRoute);
+
+  const currentRouteParts = splitRoute(route);
+  if (currentRouteParts.length > routeParts.length) {
+    return undefined;
+  }
+  let pathParams: { [key: string]: string | undefined } = {};
+  let routePart = routeParts.shift();
+  while (routePart) {
+
+    if (currentRouteParts.length <= 0 && !routePart.isOptional) {
+      return undefined;
+    }
+    let currentRoutePart = currentRouteParts.shift();
+    if (!currentRoutePart && !routePart.isOptional) {
+      return undefined;
+    }
+    if (!routePart.isVariable) {
+      if (currentRoutePart !== routePart.name) {
+        return undefined;
+      }
+    } else if (routePart.isVariable) {
+      if (routePart.isOptional) {
+        if (routeParts.find(rp => !rp.isVariable && !rp.isOptional)?.name === currentRoutePart) {
+          pathParams[routePart.name] = undefined;
+          routePart = routeParts.shift();
+        } else {
+          pathParams[routePart.name] = currentRoutePart;
+        }
+      } else {
+        pathParams[routePart.name] = currentRoutePart;
+      }
+    }
+    routePart = routeParts.shift();
+  }
+  return pathParams as RouteParams<TRoute>;
+}
+
 type RouteOptions<Path extends string> = {
   path: Path;
   render: (props: RouteParams<Path>) => JSXInternal.Element
 };
 
-const createParams = <TPath extends string>(params: {path: TPath}): RouteParams<TPath> => {
-  return {
-    id: 'ovo je indetifikator',
-    lang: 'en'
-  } as RouteParams<TPath>
-}
-
 export const Route = <Path extends string>({ path, render }: RouteOptions<Path>) => {
   console.log(render);
-  const params = createParams({path}) satisfies RouteParams<Path>;
+  const params = matches({route: path, testRoute: window.location.href});
+  if (!params) {
+    return <></>
+  }
   return (
     <>
       {render(params)}
