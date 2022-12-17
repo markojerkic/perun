@@ -73,7 +73,7 @@ export const Router = <TRoute extends string, TCurrentRoute extends string>({ ro
   }, [currentRoute, routerPatterns]);
 
   if (!match?.match) {
-    return ({ Router: () => <div>Nema odgovarajuće rute</div> })
+    return ({ Router: <div>Nema odgovarajuće rute</div> })
   }
 
   return {

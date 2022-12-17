@@ -1,5 +1,5 @@
 import { Router } from "./router";
-import { useMemo, useState } from 'preact/hooks';
+import { useEffect, useMemo, useState } from 'preact/hooks';
 
 
 const TestComponent = ({ lastname, id }: { lastname?: string, id: string }) => {
@@ -13,7 +13,15 @@ const TestComponent = ({ lastname, id }: { lastname?: string, id: string }) => {
 
 export function App() {
 
-  const [currentRoute] = useState('/marko/jerkic');
+  const [currentRoute, setCurrentRoute] = useState(window.location.pathname);
+
+  useEffect(() => {
+    const onLocationChange = () => {
+      setCurrentRoute(window.location.pathname);
+    };
+    window.addEventListener("navigate", onLocationChange);
+    return () => window.removeEventListener("navigate", onLocationChange);
+  }, []);
 
   const t = useMemo(() => Router({
     currentRoute: currentRoute,
@@ -27,7 +35,10 @@ export function App() {
 
   return (
     <>
-      {t.Router}
+      <p>Bok, ovo je moj router :)</p>
+      <div className='bg-blue-200'>
+        {t.Router}
+      </div>
     </>
   )
 }
