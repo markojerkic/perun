@@ -1,4 +1,4 @@
-import { useMemo } from "preact/hooks";
+import { useMemo, useState } from "preact/hooks";
 import { JSXInternal } from "preact/src/jsx";
 import { RouteParams } from "./types/router";
 
@@ -21,7 +21,7 @@ const createPathParts = (route: string) => {
   return pathParts;
 }
 
-const matches = <TRoute extends string>({ route, testRoute }: { route: string, testRoute: TRoute }): RouteParams<TRoute> | undefined => {
+const matches = <TRoute extends string>({ currentRoute: route, routerPattern: testRoute }: { currentRoute: string, routerPattern: TRoute }): RouteParams<TRoute> | undefined => {
   const routeParts = createPathParts(testRoute);
 
   const currentRouteParts = splitRoute(route);
@@ -61,24 +61,27 @@ const matches = <TRoute extends string>({ route, testRoute }: { route: string, t
 }
 
 type RouteOptions<Path extends string> = {
-  path: Path;
-  render: (props: RouteParams<Path>) => JSXInternal.Element
+  routerPattern: Path;
+  renderComponent: (props: RouteParams<Path>) => JSXInternal.Element
 };
 
-export const Router = <TRoute extends string>({ routes, currentRoute }: { routes: RouteOptions<TRoute>[], currentRoute: TRoute }) => {
+export const Router = <TRoute extends string, TCurrentRoute extends string>({ routerPatterns, currentRoute }: { routerPatterns: RouteOptions<TRoute>[], currentRoute: TCurrentRoute }) => {
   const match = useMemo(() => {
-    return routes
-      .map(route => ({ match: matches({ route: route.path, testRoute: currentRoute }), route }))
-      .find(match => match.match);
-  }, [currentRoute, routes]);
+    return routerPatterns
+      .map(route => ({ match: matches({ currentRoute, routerPattern: route.routerPattern }), route }))
+      .find(match => !!match && !!match.match);
+  }, [currentRoute, routerPatterns]);
 
   if (!match?.match) {
-    return <div>Nema odgovarajuće rute</div>
+    return ({ Router: () => <div>Nema odgovarajuće rute</div> })
   }
 
-  return (
-    <>
-      {match.route.render(match.match)}
-    </>
-  );
+  return {
+    Router: (
+      <>
+        {match.route.renderComponent(match.match)}
+      </>
+    )
+  };
 }
+

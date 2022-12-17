@@ -1,25 +1,33 @@
 import { Router } from "./router";
-import { useState } from 'preact/hooks';
+import { useMemo, useState } from 'preact/hooks';
 
-const TestComponent = (props: { lang?: string | number, id: string | number }) => {
+
+const TestComponent = ({ lastname, id }: { lastname?: string, id: string }) => {
   return (
     <>
-      <p>hejjja, {props.lang}</p>
-      <div>{props.id}</div>
+      <p>Prezime: {lastname}</p>
+      <div>Id: {id}</div>
     </>
   );
 }
 
 export function App() {
-  const [currentRoute] = useState(window.location.href);
-  const [route] = useState('/[lang?]/items/[id]');
+
+  const [currentRoute] = useState('/marko/jerkic');
+
+  const t = useMemo(() => Router({
+    currentRoute: currentRoute,
+    routerPatterns: [
+      {
+        routerPattern: '/marko/[lastname]/[id?]',
+        renderComponent: (params) => <TestComponent lastname={params.lastname} id={params.id ?? 'nema id'} />
+      }
+    ]
+  }), [currentRoute]);
 
   return (
     <>
-      <Router routes={[{
-        path: route,
-        render: (props) => <TestComponent lang={props.lang} id={props.id} />
-      }]} currentRoute={currentRoute} />
+      {t.Router}
     </>
   )
 }

@@ -13,7 +13,7 @@ type FilterInOptional<TPart extends string> = TPart extends `${infer TName}?`
 type FilteredParts<Path> = Path extends `${infer PartA}/${infer PartB}`
   ? IsParameter<PartA> | FilteredParts<PartB>
   : IsParameter<Path>;
-type DefaultType = string | number;
+type DefaultType = string;
 type ParamValue<Key> = Key extends `${infer Anything}?`
   ? DefaultType | null
   : DefaultType;
