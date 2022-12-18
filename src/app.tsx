@@ -39,8 +39,8 @@ export function App() {
 
   const t = useMemo(() => createRouter({
     plyersCountry: createRoute({
-      routePattern: '/players/[country]/[playername]',
-      renderComponent: (props) => <TestComponent2 country={props.country} player={props.playername} />
+      routePattern: '/[id?]/ime/[lastname]',
+      renderComponent: (props) => <TestComponent lastname={props.lastname} id={props.id ?? 'name id'}/>
     }),
     lastNameId: createRoute({
       routePattern: '/players/[countr]/[playername]',

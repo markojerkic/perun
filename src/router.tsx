@@ -1,13 +1,6 @@
 import { useEffect, useMemo, useState } from "preact/hooks";
-import { JSXInternal } from "preact/src/jsx";
-import { RouteParams } from "./types/router";
+import { Route, RouteOptions, RouteParams } from "./types/router";
 
-
-type PathPart = {
-  name: string,
-  isVariable: boolean,
-  isOptional: boolean
-}
 
 const splitRoute = (route: string) => route.split('/').filter(part => !!part && part !== '');
 
@@ -59,14 +52,6 @@ const matches = <TRoute extends string>({ currentRoute: route, routerPattern: te
   }
   return pathParams as RouteParams<TRoute>;
 }
-
-type RouteOptions<Path extends string> = {
-  routePattern: Path;
-  renderComponent: (props: RouteParams<Path>) => JSXInternal.Element
-};
-
-type Route<TRoute extends string> = ReturnType<typeof createRoute<TRoute>>;
-
 export const createRoute = <TRoute extends string>({ routePattern, renderComponent }: RouteOptions<TRoute>) => {
 
   return ({
@@ -94,11 +79,7 @@ export const createRouter = <TRoute extends { [key: string]: string }>(routes: {
     .map(route => ({ match: matches({ currentRoute, routerPattern: route.routePattern }), renderComponent: route.renderComponent }))
     .find(match => !!match && !!match.match),
     [currentRoute]);
-  //const match = useMemo(() => {
-  //  return matches({currentRoute, routerPattern});
-  //}, [currentRoute]);
 
-  //return match;
   if (!match?.match) {
     return <div>No matching routes</div>;
   }
