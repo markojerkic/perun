@@ -70,7 +70,6 @@ const routeTo = <TRoute extends string>({ routePattern, routeParams }: { routePa
 }
 
 const changePath = (path: string) => {
-  console.log('path', path);
   window.history.pushState({}, "", path);
   currentRoute.value = path;
 }

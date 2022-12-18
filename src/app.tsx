@@ -51,6 +51,10 @@ export function App() {
 
   const router = createRouter(routes.value);
 
+  const toPersonWithId = useCallback(() => {
+    routes.value.lastNameId.routeTo({ id: 'marko', lastname: 'jerkic' })
+  }, []);
+
   const toPerson = useCallback(() => {
     routes.value.lastNameId.routeTo({ lastname: 'jerkic' })
   }, []);
@@ -69,6 +73,7 @@ export function App() {
       <div class='flex space-x-4 my-4'>
         <button className='bg-red-300' onClick={() => toPlayer()}>Idemo na igrač stipe iz hrv</button>
         <button className='bg-blue-300' onClick={() => toPerson()}>Idemo na osobu jerkic</button>
+        <button className='bg-blue-300' onClick={() => toPersonWithId()}>Idemo na osobu jerkic s identifikatorom</button>
         <button className='bg-fuchsia-300' onClick={() => toAsyncRoute()}>Idemo na async rutu</button>
       </div>
       <router.Router />
