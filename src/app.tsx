@@ -1,5 +1,5 @@
 import { createAsyncRoute, createRoute, createRouter } from "./router";
-import { useCallback } from 'preact/hooks';
+import { useCallback, useEffect, useMemo } from 'preact/hooks';
 import { signal } from "@preact/signals";
 
 
@@ -48,7 +48,6 @@ export const routes = signal({
 });
 
 export function App() {
-
   const router = createRouter(routes.value);
 
   const toPersonWithId = useCallback(() => {

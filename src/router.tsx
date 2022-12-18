@@ -98,6 +98,25 @@ const currentRoute = signal(window.location.pathname);
 
 export const createRouter = <TRoutes extends { [routeName: string]: string }>(routes: { [TRoute in keyof TRoutes]: Route<TRoutes[TRoute]> | AsyncRoute<TRoutes[TRoute]> }) => {
 
+  const queryParams = useMemo(() => {
+    const params = new Map<string, string[]>();
+    const entriesIterator = new URLSearchParams(window.location.search).entries();
+    let entry = entriesIterator.next();
+    while (!entry.done) {
+      let values = params.get(entry.value[0]);
+      if (!values) {
+        values = [entry.value[1]];
+      } else {
+        values = [...values, entry.value[1]]
+      }
+      params.set(entry.value[0], values);
+      entry = entriesIterator.next();
+    }
+
+    return Object.fromEntries(params.entries());
+  }, []);
+
+
   const sortedRoutes = useMemo(() => Object.keys(routes)
     .map(route => routes[route])
     .sort((a, b) => {
