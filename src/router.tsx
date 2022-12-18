@@ -74,11 +74,28 @@ export const createRouter = <TRoute extends { [key: string]: string }>(routes: {
     return () => window.removeEventListener("navigate", onLocationChange);
   }, []);
 
-  const match = useMemo(() => Object.keys(routes)
+  const sortedRoutes = useMemo(() => Object.keys(routes)
     .map(route => routes[route])
-    .map(route => ({ match: matches({ currentRoute, routerPattern: route.routePattern }), renderComponent: route.renderComponent }))
-    .find(match => !!match && !!match.match),
+    .sort((a, b) => {
+      const aPartsLength = a.routePattern.split('/').filter((p: string) => typeof p === 'string' && p !== '').length;
+      const bPartsLength = b.routePattern.split('/').filter((p: string) => typeof p === 'string' && p !== '').length;
+      if (aPartsLength === bPartsLength) {
+        return 0;
+      } else if (aPartsLength > bPartsLength) {
+        return 1;
+      }
+      return -1;
+    }),
     [currentRoute]);
+
+  const match = useMemo(() =>
+    sortedRoutes
+      .map(route => ({ route: route.routePattern, match: matches({ currentRoute, routerPattern: route.routePattern }), renderComponent: route.renderComponent }))
+      .find(match => {
+        console.log(match);
+        return !!match && !!match.match
+      }),
+    [matches]);
 
   if (!match?.match) {
     return <div>No matching routes</div>;
