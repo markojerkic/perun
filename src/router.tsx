@@ -98,13 +98,16 @@ export const createRouter = <TRoute extends { [key: string]: string }>(routes: {
     [matches]);
 
   if (!match?.match) {
-    return <div>No matching routes</div>;
+    return { Router: () => <div>No matching routes</div> };
   }
 
-  return (
-    <>
-      {match.renderComponent(match.match)}
-    </>
-  );
+
+  return {
+    Router: () => (
+      <>
+        {match.renderComponent(match.match)}
+      </>
+    )
+  };
 }
 

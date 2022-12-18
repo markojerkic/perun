@@ -37,7 +37,7 @@ export function App() {
   }, []);
 
 
-  const t = useMemo(() => createRouter({
+  const router = useMemo(() => createRouter({
     plyersCountry: createRoute({
       routePattern: '/[id?]/ime/[lastname]',
       renderComponent: (props) => <TestComponent lastname={props.lastname} id={props.id ?? 'name id'} />
@@ -52,7 +52,7 @@ export function App() {
   return (
     <>
       <p>Bok, ovo je moj router :)</p>
-      {t}
+      <router.Router />
     </>
   )
 }
