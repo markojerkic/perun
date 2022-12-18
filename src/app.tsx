@@ -1,4 +1,4 @@
-import { Router } from "./router";
+import { createRoute, createRouter } from "./router";
 import { useEffect, useMemo, useState } from 'preact/hooks';
 
 
@@ -36,24 +36,23 @@ export function App() {
     return () => window.removeEventListener("navigate", onLocationChange);
   }, []);
 
-  const t = useMemo(() => Router({
-    currentRoute: currentRoute,
-    routerPatterns: {
-      lastNameId: {
-        routerPattern: '/marko/[lastname]/[id?]',
-        renderComponent: (params) => <TestComponent lastname={params.lastname} id={params.id ?? 'nema id'} />
-      },
-      countryPlayer: {
-        routerPattern: '/players/[country]/[player]',
-        renderComponent: (params) => <TestComponent2 country={params.country} player={params.player} />
-      }
-    }
+
+  const t = useMemo(() => createRouter({
+    plyersCountry: createRoute({
+      routePattern: '/players/[country]/[playername]',
+      renderComponent: (props) => <TestComponent2 country={props.country} player={props.playername} />
+    }),
+    lastNameId: createRoute({
+      routePattern: '/players/[countr]/[playername]',
+      renderComponent: (props) => <TestComponent id={props.countr ?? 'nema id'} lastname={props.playername} />,
+    }),
+
   }), [currentRoute]);
 
   return (
     <>
       <p>Bok, ovo je moj router :)</p>
-      {t.Router}
+      {t}
     </>
   )
 }

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "preact/hooks";
+import { useEffect, useMemo, useState } from "preact/hooks";
 import { JSXInternal } from "preact/src/jsx";
 import { RouteParams } from "./types/router";
 
@@ -61,32 +61,52 @@ const matches = <TRoute extends string>({ currentRoute: route, routerPattern: te
 }
 
 type RouteOptions<Path extends string> = {
-  [routeName: string]: {
-    routerPattern: Path;
-    renderComponent: (props: RouteParams<Path>) => JSXInternal.Element
-  }
+  routePattern: Path;
+  renderComponent: (props: RouteParams<Path>) => JSXInternal.Element
 };
 
-export const Router = <TRoute extends string, TCurrentRoute extends string>({ routerPatterns, currentRoute }: { routerPatterns: RouteOptions<TRoute>, currentRoute: TCurrentRoute }) => {
-  const match = useMemo(() => {
-    return Object.keys(routerPatterns)
-      .map(routeName => routerPatterns[routeName])
-      .map(route => ({ match: matches({ currentRoute, routerPattern: route.routerPattern }), route }))
-      .find(match => !!match && !!match.match);
-  }, [currentRoute, routerPatterns]);
+type Route<TRoute extends string> = ReturnType<typeof createRoute<TRoute>>;
+
+export const createRoute = <TRoute extends string>({ routePattern, renderComponent }: RouteOptions<TRoute>) => {
+
+  return ({
+    navigateTo: (params: RouteParams<TRoute>) => console.log(params),
+    renderComponent,
+    routePattern
+  });
+}
 
 
+export const createRouter = <TRoute extends { [key: string]: string }>(routes: { [K in keyof TRoute]: Route<TRoute[K]> }) => {
+
+  const [currentRoute, setCurrentRoute] = useState(window.location.pathname);
+
+  useEffect(() => {
+    const onLocationChange = () => {
+      setCurrentRoute(window.location.pathname);
+    };
+    window.addEventListener("navigate", onLocationChange);
+    return () => window.removeEventListener("navigate", onLocationChange);
+  }, []);
+
+  const match = useMemo(() => Object.keys(routes)
+    .map(route => routes[route])
+    .map(route => ({ match: matches({ currentRoute, routerPattern: route.routePattern }), renderComponent: route.renderComponent }))
+    .find(match => !!match && !!match.match),
+    [currentRoute]);
+  //const match = useMemo(() => {
+  //  return matches({currentRoute, routerPattern});
+  //}, [currentRoute]);
+
+  //return match;
   if (!match?.match) {
-    return ({ Router: <div>Nema odgovarajuće rute</div>, routerPatterns })
+    return <div>No matching routes</div>;
   }
 
-  return {
-    Router: (
-      <>
-        {match.route.renderComponent(match.match)}
-      </>
-    ),
-    routerPatterns
-  };
+  return (
+    <>
+      {match.renderComponent(match.match)}
+    </>
+  );
 }
 
