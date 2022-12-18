@@ -1,6 +1,5 @@
-import { createRoute, createRouter } from "./router";
-import { useCallback, useContext } from 'preact/hooks';
-import { createContext } from "preact";
+import { createAsyncRoute, createRoute, createRouter } from "./router";
+import { useCallback } from 'preact/hooks';
 import { signal } from "@preact/signals";
 
 
@@ -35,12 +34,16 @@ const TestComponent2 = ({ country, player }: { country: string, player: string }
 export const routes = signal({
   plyersCountry: createRoute({
     routePattern: '/players/[country]/[playername]',
-    renderComponent: (props) => <TestComponent2 country={props.country} player={props.playername} />
+    renderComponent: (props) => <TestComponent2 country={props.country} player={props.playername} />,
   }),
   lastNameId: createRoute({
     routePattern: '/[id?]/ime/[lastname]',
     renderComponent: (props) => <TestComponent lastname={props.lastname} id={props.id ?? 'name id'} />,
   }),
+  asyncRoute: createAsyncRoute({
+    routePattern: '/async/[route]',
+    renderComponent: (props) => import('./async').then(module => (<module.AsyncComponent route={props.route} />)),
+  })
 
 });
 
@@ -56,12 +59,17 @@ export function App() {
     routes.value.plyersCountry.routeTo({ playername: 'stipe', country: 'hrv' })
   }, []);
 
+  const toAsyncRoute = useCallback(() => {
+    routes.value.asyncRoute.routeTo({ route: 'neka' })
+  }, []);
+
   return (
     <>
       <p>Bok, ovo je moj router :)</p>
       <div class='flex space-x-4 my-4'>
         <button className='bg-red-300' onClick={() => toPlayer()}>Idemo na igrač stipe iz hrv</button>
         <button className='bg-blue-300' onClick={() => toPerson()}>Idemo na osobu jerkic</button>
+        <button className='bg-fuchsia-300' onClick={() => toAsyncRoute()}>Idemo na async rutu</button>
       </div>
       <router.Router />
     </>

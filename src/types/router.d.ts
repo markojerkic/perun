@@ -32,8 +32,19 @@ export type RouteParams<TPath extends string> = NonOptionalParts<TPath> & Partia
 
 export type RouteOptions<Path extends string> = {
   routePattern: Path;
-  renderComponent: (props: RouteParams<Path>) => JSXInternal.Element
+  renderComponent: (props: RouteParams<Path>) => JSXInternal.Element;
 };
 
-export type Route<TRoute extends string> = RouteOptions<TRoute> & { routeTo: (routeParams: RouteParams<TRoute>) => void; };
+type TAsyncUtil = { isAsync: boolean };
+export type Route<TRoute extends string> = RouteOptions<TRoute> & { routeTo: (routeParams: RouteParams<TRoute>) => void; } & TAsyncUtil;
+
+export type AsyncRouteParams<TPath extends string> = NonOptionalParts<TPath> & Partial<OptionalParts<TPath>>;
+
+export type AsyncRouteOptions<Path extends string> = {
+  routePattern: Path;
+  renderComponent: (props: AsyncRouteParams<Path>) => Promise<JSXInternal.Element>;
+};
+
+export type AsyncRoute<TAsyncRoute extends string> = AsyncRouteOptions<TAsyncRoute> & { routeTo: (routeParams: AsyncRouteParams<TAsyncRoute>) => void; } & TAsyncUtil;
+
 

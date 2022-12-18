@@ -1,6 +1,6 @@
 import { signal } from "@preact/signals";
 import { useEffect, useMemo, useState } from "preact/hooks";
-import { Route, RouteOptions, RouteParams } from "./types/router";
+import { AsyncRoute, AsyncRouteOptions, Route, RouteOptions, RouteParams } from "./types/router";
 
 
 const splitRoute = (route: string) => route.split('/').filter(part => !!part && part !== '');
@@ -66,7 +66,7 @@ const routeTo = <TRoute extends string>({ routePattern, routeParams }: { routePa
       }
       return part;
     }).join('/');
-  return pathWithoutLeadingSlash.startsWith('/')? pathWithoutLeadingSlash: `/${pathWithoutLeadingSlash}`;
+  return pathWithoutLeadingSlash.startsWith('/') ? pathWithoutLeadingSlash : `/${pathWithoutLeadingSlash}`;
 }
 
 const changePath = (path: string) => {
@@ -75,9 +75,20 @@ const changePath = (path: string) => {
   currentRoute.value = path;
 }
 
+export const createAsyncRoute = <TRoute extends string>({ routePattern, renderComponent }: AsyncRouteOptions<TRoute>) => {
+
+  return ({
+    isAsync: true,
+    renderComponent,
+    routePattern,
+    routeTo: (routeParams: RouteParams<TRoute>) => changePath(routeTo({ routePattern, routeParams }))
+  });
+}
+
 export const createRoute = <TRoute extends string>({ routePattern, renderComponent }: RouteOptions<TRoute>) => {
 
   return ({
+    isAsync: false,
     renderComponent,
     routePattern,
     routeTo: (routeParams: RouteParams<TRoute>) => changePath(routeTo({ routePattern, routeParams }))
@@ -86,7 +97,7 @@ export const createRoute = <TRoute extends string>({ routePattern, renderCompone
 
 const currentRoute = signal(window.location.pathname);
 
-export const createRouter = <TRoutes extends { [routeName: string]: string }>(routes: { [TRoute in keyof TRoutes]: Route<TRoutes[TRoute]> }) => {
+export const createRouter = <TRoutes extends { [routeName: string]: string }>(routes: { [TRoute in keyof TRoutes]: Route<TRoutes[TRoute]> | AsyncRoute<TRoutes[TRoute]> }) => {
 
   const sortedRoutes = useMemo(() => Object.keys(routes)
     .map(route => routes[route])
@@ -109,6 +120,7 @@ export const createRouter = <TRoutes extends { [routeName: string]: string }>(ro
           route: route.routePattern,
           match: matches({ currentRoute: currentRoute.value, routerPattern: route.routePattern }),
           renderComponent: route.renderComponent,
+          isAsync: route.isAsync
         }
       ))
       .find(match => {
@@ -124,11 +136,30 @@ export const createRouter = <TRoutes extends { [routeName: string]: string }>(ro
   const matchedProps = match.match; //useMemo(() => match.match, [match.match]);
 
   return {
-    Router: () => (
-      <>
-        {match.renderComponent(matchedProps)}
-      </>
-    ),
+    Router: () => {
+      if (!match.isAsync) {
+        return (
+          <>
+            {match.renderComponent(matchedProps)}
+          </>
+        )
+      }
+      const [asyncComponent, setAsyncComponent] = useState();
+      useEffect(() => {
+        const load = async () => {
+          setAsyncComponent(await (match.renderComponent(matchedProps)));
+        }
+        load();
+      }, []);
+      if (!asyncComponent) {
+        return <>Loading...</>
+      }
+      return (
+        <>
+          {asyncComponent}
+        </>
+      );
+    },
     routes
   };
 }
