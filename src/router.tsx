@@ -1,3 +1,4 @@
+import { signal } from "@preact/signals";
 import { useEffect, useMemo, useState } from "preact/hooks";
 import { Route, RouteOptions, RouteParams } from "./types/router";
 
@@ -52,27 +53,40 @@ const matches = <TRoute extends string>({ currentRoute: route, routerPattern: te
   }
   return pathParams as RouteParams<TRoute>;
 }
+
+const routeTo = <TRoute extends string>({ routePattern, routeParams }: { routePattern: TRoute, routeParams: RouteParams<string> }) => {
+  const pathWithoutLeadingSlash = routePattern.split('/')
+    .filter(part => part !== '')
+    .map(part => {
+      if (part.startsWith('[') && part.endsWith(']')) {
+        part = part.replace('[', '').replace(']', '').replace('?', '');
+        const partCast = part as TRoute;
+
+        return (routeParams as any)[partCast];
+      }
+      return part;
+    }).join('/');
+  return pathWithoutLeadingSlash.startsWith('/')? pathWithoutLeadingSlash: `/${pathWithoutLeadingSlash}`;
+}
+
+const changePath = (path: string) => {
+  console.log('path', path);
+  window.history.pushState({}, "", path);
+  currentRoute.value = path;
+}
+
 export const createRoute = <TRoute extends string>({ routePattern, renderComponent }: RouteOptions<TRoute>) => {
 
   return ({
-    navigateTo: (params: RouteParams<TRoute>) => console.log(params),
     renderComponent,
-    routePattern
+    routePattern,
+    routeTo: (routeParams: RouteParams<TRoute>) => changePath(routeTo({ routePattern, routeParams }))
   });
 }
 
+const currentRoute = signal(window.location.pathname);
 
-export const createRouter = <TRoute extends { [key: string]: string }>(routes: { [K in keyof TRoute]: Route<TRoute[K]> }) => {
-
-  const [currentRoute, setCurrentRoute] = useState(window.location.pathname);
-
-  useEffect(() => {
-    const onLocationChange = () => {
-      setCurrentRoute(window.location.pathname);
-    };
-    window.addEventListener("navigate", onLocationChange);
-    return () => window.removeEventListener("navigate", onLocationChange);
-  }, []);
+export const createRouter = <TRoutes extends { [routeName: string]: string }>(routes: { [TRoute in keyof TRoutes]: Route<TRoutes[TRoute]> }) => {
 
   const sortedRoutes = useMemo(() => Object.keys(routes)
     .map(route => routes[route])
@@ -86,28 +100,36 @@ export const createRouter = <TRoute extends { [key: string]: string }>(routes: {
       }
       return -1;
     }),
-    [currentRoute]);
+    [currentRoute.value, routes]);
 
   const match = useMemo(() =>
     sortedRoutes
-      .map(route => ({ route: route.routePattern, match: matches({ currentRoute, routerPattern: route.routePattern }), renderComponent: route.renderComponent }))
+      .map(route => (
+        {
+          route: route.routePattern,
+          match: matches({ currentRoute: currentRoute.value, routerPattern: route.routePattern }),
+          renderComponent: route.renderComponent,
+        }
+      ))
       .find(match => {
-        console.log(match);
         return !!match && !!match.match
       }),
-    [matches]);
+    [matches, currentRoute.value]);
 
-  if (!match?.match) {
-    return { Router: () => <div>No matching routes</div> };
+  if (!match || !match?.match) {
+    return { Router: () => <div>No matching routes</div>, routes };
   }
 
+  // FIXME: Ts server goes crazy if directly passed
+  const matchedProps = match.match; //useMemo(() => match.match, [match.match]);
 
   return {
     Router: () => (
       <>
-        {match.renderComponent(match.match)}
+        {match.renderComponent(matchedProps)}
       </>
-    )
+    ),
+    routes
   };
 }
 

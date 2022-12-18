@@ -30,12 +30,10 @@ type OptionalParts<Path> = {
 
 export type RouteParams<TPath extends string> = NonOptionalParts<TPath> & Partial<OptionalParts<TPath>>;
 
-
-
 export type RouteOptions<Path extends string> = {
   routePattern: Path;
   renderComponent: (props: RouteParams<Path>) => JSXInternal.Element
 };
 
-export type Route<TRoute extends string> = ReturnType<typeof createRoute<TRoute>>;
+export type Route<TRoute extends string> = RouteOptions<TRoute> & { routeTo: (routeParams: RouteParams<TRoute>) => void; };
 

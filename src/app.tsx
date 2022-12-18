@@ -1,5 +1,5 @@
 import { createRoute, createRouter } from "./router";
-import { useEffect, useMemo, useState } from 'preact/hooks';
+import { useCallback } from 'preact/hooks';
 
 
 const TestComponent = ({ lastname, id }: { lastname?: string, id: string }) => {
@@ -24,34 +24,36 @@ const TestComponent2 = ({ country, player }: { country: string, player: string }
     </>
   );
 }
+
 export function App() {
 
-  const [currentRoute, setCurrentRoute] = useState(window.location.pathname);
-
-  useEffect(() => {
-    const onLocationChange = () => {
-      setCurrentRoute(window.location.pathname);
-    };
-    window.addEventListener("navigate", onLocationChange);
-    return () => window.removeEventListener("navigate", onLocationChange);
-  }, []);
-
-
-  const router = useMemo(() => createRouter({
+  const router = createRouter({
     plyersCountry: createRoute({
-      routePattern: '/[id?]/ime/[lastname]',
-      renderComponent: (props) => <TestComponent lastname={props.lastname} id={props.id ?? 'name id'} />
+      routePattern: '/players/[countr]/[playername]',
+      renderComponent: (props) => <TestComponent2 country={props.countr} player={props.playername} />
     }),
     lastNameId: createRoute({
-      routePattern: '/players/[countr]/[playername]',
-      renderComponent: (props) => <TestComponent2 country={props.countr} player={props.playername} />,
+      routePattern: '/[id?]/ime/[lastname]',
+      renderComponent: (props) => <TestComponent lastname={props.lastname} id={props.id ?? 'name id'} />,
     }),
 
-  }), [currentRoute]);
+  });
+
+  const toPerson = useCallback(() => {
+    router.routes.lastNameId.routeTo({ lastname: 'jerkic' })
+  }, []);
+
+  const toPlayer = useCallback(() => {
+    router.routes.plyersCountry.routeTo({ playername: 'stipe', countr: 'hrv' })
+  }, []);
 
   return (
     <>
       <p>Bok, ovo je moj router :)</p>
+      <div class='flex space-x-4 my-4'>
+        <button className='bg-red-300' onClick={() => toPlayer()}>Idemo na igrač stipe iz hrv</button>
+        <button className='bg-blue-300' onClick={() => toPerson()}>Idemo na osobu jerkic</button>
+      </div>
       <router.Router />
     </>
   )
