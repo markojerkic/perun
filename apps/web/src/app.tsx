@@ -1,17 +1,9 @@
-import { createAsyncRoute, createRoute, createRouter } from "./router";
-import { useCallback, useEffect, useMemo } from "preact/hooks";
+import { useCallback } from "preact/hooks";
 import { signal } from "@preact/signals";
 import {
-  objectInputType,
-  objectOutputType,
-  UnknownKeysParam,
   z,
-  ZodAny,
-  ZodObject,
-  ZodRawShape,
-  ZodSchema,
-  ZodTypeAny,
 } from "zod";
+import {createRouter, createRoute, createAsyncRoute} from "router/router";
 
 const TestComponent = ({ lastname, id }: { lastname?: string; id: string }) => {
   return (

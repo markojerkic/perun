@@ -11,7 +11,8 @@
   "dependencies": {
     "@preact/signals": "^1.1.2",
     "preact": "^10.11.3",
-    "zod": "^3.20.2"
+    "zod": "^3.20.2",
+    "router": "*"
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.4.0",

@@ -1,13 +1,9 @@
 import { signal } from "@preact/signals";
 import { useEffect, useMemo, useState } from "preact/hooks";
 import {
-  object,
   objectInputType,
   objectOutputType,
   UnknownKeysParam,
-  z,
-  ZodAny,
-  ZodObject,
   ZodRawShape,
   ZodTypeAny,
 } from "zod";
@@ -19,7 +15,7 @@ import {
   RouteOptions,
   RouteParams,
   RouteParamsWithOptionalQueryParams,
-} from "./types/router";
+} from "./types";
 
 const splitRoute = (route: string) =>
   route.split("/").filter((part) => !!part && part !== "");
