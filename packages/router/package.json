@@ -2,11 +2,17 @@
   "name": "router",
   "private": true,
   "version": "0.0.0",
-  "types": "./types.d.ts",
-  "main": "./router.tsx",
+  "types": "./dist/types.d.ts",
+  "main": "./dist/index.tsx",
+  "scripts": {
+    "build": "tsup ./router.tsx --format cjs --dts"
+  },
   "dependencies": {
     "@preact/signals": "^1.1.2",
     "preact": "^10.11.3",
     "zod": "^3.20.2"
+  },
+  "devDependencies": {
+    "tsup": "^6.5.0"
   }
 }
