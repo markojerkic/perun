@@ -1,9 +1,7 @@
 import { useCallback } from "preact/hooks";
 import { signal } from "@preact/signals";
-import {
-  z,
-} from "zod";
-import {createRouter, createRoute, createAsyncRoute} from "router/router";
+import { z } from "zod";
+import { createRouter, createRoute, createAsyncRoute } from "router/router";
 
 const TestComponent = ({ lastname, id }: { lastname?: string; id: string }) => {
   return (
