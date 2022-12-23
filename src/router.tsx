@@ -1,6 +1,7 @@
 import { signal } from "@preact/signals";
 import { useEffect, useMemo, useState } from "preact/hooks";
-import { AsyncRoute, AsyncRouteOptions, Route, RouteOptions, RouteParams } from "./types/router";
+import { object, objectInputType, objectOutputType, UnknownKeysParam, z, ZodAny, ZodObject, ZodRawShape, ZodTypeAny } from "zod";
+import { AsyncRoute, AsyncRouteOptions, AsyncRouteParamsWithOptionalQueryParams, Route, RouteOptions, RouteParams, RouteParamsWithOptionalQueryParams } from "./types/router";
 
 
 const splitRoute = (route: string) => route.split('/').filter(part => !!part && part !== '');
@@ -74,23 +75,48 @@ const changePath = (path: string) => {
   currentRoute.value = path;
 }
 
-export const createAsyncRoute = <TRoute extends string>({ routePattern, renderComponent }: AsyncRouteOptions<TRoute>) => {
+export const createAsyncRoute = <TRoute extends string,
+  TValidType extends ZodRawShape,
+  UnknownKeys extends UnknownKeysParam = "strip",
+  Catchall extends ZodTypeAny = ZodTypeAny,
+  Output = objectOutputType<TValidType, Catchall>,
+  Input = objectInputType<TValidType, Catchall>>({ routePattern, renderComponent }: AsyncRouteOptions<
+    TRoute,
+    TValidType,
+    UnknownKeys,
+    Catchall,
+    Output,
+    Input
+  >) => {
 
   return ({
     isAsync: true,
     renderComponent,
     routePattern,
-    routeTo: (routeParams: RouteParams<TRoute>) => changePath(routeTo({ routePattern, routeParams }))
+    routeTo: (routeParams: AsyncRouteParamsWithOptionalQueryParams<TRoute, TValidType, UnknownKeys, Catchall, Output>) => changePath(routeTo({ routePattern, routeParams }))
   });
 }
 
-export const createRoute = <TRoute extends string>({ routePattern, renderComponent }: RouteOptions<TRoute>) => {
+export const createRoute = <TRoute extends string,
+  TValidType extends ZodRawShape,
+  UnknownKeys extends UnknownKeysParam = "strip",
+  Catchall extends ZodTypeAny = ZodTypeAny,
+  Output = objectOutputType<TValidType, Catchall>,
+  Input = objectInputType<TValidType, Catchall>>({ searchParamsValidator, routePattern, renderComponent }: RouteOptions<
+    TRoute,
+    TValidType,
+    UnknownKeys,
+    Catchall,
+    Output,
+    Input
+  >) => {
 
   return ({
     isAsync: false,
     renderComponent,
     routePattern,
-    routeTo: (routeParams: RouteParams<TRoute>) => changePath(routeTo({ routePattern, routeParams }))
+    searchParamsValidator,
+    routeTo: (routeParams: RouteParamsWithOptionalQueryParams<TRoute, TValidType, UnknownKeys, Catchall, Output>) => changePath(routeTo({ routePattern, routeParams }))
   });
 }
 
@@ -116,7 +142,6 @@ export const createRouter = <TRoutes extends { [routeName: string]: string }>(ro
     return Object.fromEntries(params.entries());
   }, []);
 
-
   const sortedRoutes = useMemo(() => Object.keys(routes)
     .map(route => routes[route])
     .sort((a, b) => {
@@ -138,6 +163,7 @@ export const createRouter = <TRoutes extends { [routeName: string]: string }>(ro
           route: route.routePattern,
           match: matches({ currentRoute: currentRoute.value, routerPattern: route.routePattern }),
           renderComponent: route.renderComponent,
+          searchParamsValidator: route.searchParamsValidator,
           isAsync: route.isAsync
         }
       ))
@@ -152,6 +178,7 @@ export const createRouter = <TRoutes extends { [routeName: string]: string }>(ro
 
   // FIXME: Ts server goes crazy if directly passed
   const matchedProps = match.match; //useMemo(() => match.match, [match.match]);
+  match.searchParamsValidator;
 
   return {
     Router: () => {

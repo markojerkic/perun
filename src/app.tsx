@@ -1,6 +1,7 @@
 import { createAsyncRoute, createRoute, createRouter } from "./router";
 import { useCallback, useEffect, useMemo } from 'preact/hooks';
 import { signal } from "@preact/signals";
+import { objectInputType, objectOutputType, UnknownKeysParam, z, ZodAny, ZodObject, ZodRawShape, ZodSchema, ZodTypeAny } from "zod";
 
 
 const TestComponent = ({ lastname, id }: { lastname?: string, id: string }) => {
@@ -31,10 +32,13 @@ const TestComponent2 = ({ country, player }: { country: string, player: string }
   );
 }
 
+const validator = z.object({ ime: z.string(), prezime: z.string().optional() });
+
 export const routes = signal({
   plyersCountry: createRoute({
     routePattern: '/players/[country]/[playername]',
     renderComponent: (props) => <TestComponent2 country={props.country} player={props.playername} />,
+    searchParamsValidator: validator
   }),
   lastNameId: createRoute({
     routePattern: '/[id?]/ime/[lastname]',
@@ -46,6 +50,8 @@ export const routes = signal({
   })
 
 });
+
+routes.value.plyersCountry.routeTo({ playername: 'luka', country: 'hrv', queryParams: {ime: 'marko'} })
 
 export function App() {
   const router = createRouter(routes.value);
