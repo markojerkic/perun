@@ -17,14 +17,16 @@ const TestComponent = ({ lastname, id }: { lastname?: string; id: string }) => {
 const TestComponent2 = ({
   country,
   player,
-  queryParams
+  queryParams,
 }: {
   country: string;
   player: string;
-  queryParams: {
-    ime: string;
-    prezime?: string;
-  } | undefined
+  queryParams:
+    | {
+        ime: string;
+        prezime?: string;
+      }
+    | undefined;
 }) => {
   const toPerson = useCallback(() => {
     routes.value.lastNameId.routeTo({ lastname: "jerkic" });
@@ -49,7 +51,11 @@ export const routes = signal({
   plyersCountry: createRoute({
     routePattern: "/players/[country]/[playername]",
     renderComponent: (props) => (
-      <TestComponent2 country={props.country} player={props.playername} queryParams={props.queryParams} />
+      <TestComponent2
+        country={props.country}
+        player={props.playername}
+        queryParams={props.queryParams}
+      />
     ),
     searchParamsValidator: validator,
   }),
@@ -68,12 +74,6 @@ export const routes = signal({
   }),
 });
 
-routes.value.plyersCountry.routeTo({
-  playername: "luka",
-  country: "hrv",
-  queryParams: { ime: "marko" },
-});
-
 export function App() {
   const router = createRouter(routes.value);
 
@@ -86,7 +86,12 @@ export function App() {
   }, []);
 
   const toPlayer = useCallback(() => {
-    routes.value.plyersCountry.routeTo({ playername: "stipe", country: "hrv", queryParams: { ime: 'marko' } });
+    console.log("payer");
+    routes.value.plyersCountry.routeTo({
+      playername: "stipe",
+      country: "hrv",
+      queryParams: { ime: "marko" },
+    });
   }, []);
 
   const toAsyncRoute = useCallback(() => {

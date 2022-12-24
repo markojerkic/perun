@@ -4,6 +4,7 @@ import {
   objectInputType,
   objectOutputType,
   UnknownKeysParam,
+  ZodObject,
   ZodRawShape,
   ZodTypeAny,
 } from "zod";
@@ -13,7 +14,6 @@ import {
   AsyncRouteParamsWithOptionalQueryParams,
   Route,
   RouteOptions,
-  RouteParams,
   RouteParamsWithOptionalQueryParams,
 } from "./types";
 
@@ -41,13 +41,15 @@ const matches = <
 }: {
   currentRoute: string;
   routerPattern: TRoute;
-}): RouteParamsWithOptionalQueryParams<
-  TRoute,
-  TValidType,
-  UnknownKeys,
-  Catchall,
-  Output
-> | undefined => {
+}):
+  | RouteParamsWithOptionalQueryParams<
+      TRoute,
+      TValidType,
+      UnknownKeys,
+      Catchall,
+      Output
+    >
+  | undefined => {
   const routeParts = createPathParts(testRoute);
 
   const currentRouteParts = splitRoute(route);
@@ -85,7 +87,10 @@ const matches = <
     }
     routePart = routeParts.shift();
   }
-  return { ...pathParams, queryParams: currentQueryParams.value } as RouteParamsWithOptionalQueryParams<
+  return {
+    ...pathParams,
+    queryParams: currentQueryParams.value,
+  } as RouteParamsWithOptionalQueryParams<
     TRoute,
     TValidType,
     UnknownKeys,
@@ -94,11 +99,12 @@ const matches = <
   >;
 };
 
-const routeTo = <TRoute extends string,
+const routeTo = <
+  TRoute extends string,
   TValidType extends ZodRawShape,
   UnknownKeys extends UnknownKeysParam = "strip",
   Catchall extends ZodTypeAny = ZodTypeAny,
-  Output = objectOutputType<TValidType, Catchall>,
+  Output = objectOutputType<TValidType, Catchall>
 >({
   routePattern,
   routeParams,
@@ -128,25 +134,41 @@ const routeTo = <TRoute extends string,
   return {
     path: pathWithoutLeadingSlash.startsWith("/")
       ? pathWithoutLeadingSlash
-      : `/${pathWithoutLeadingSlash}`, queryParams: routeParams.queryParams
+      : `/${pathWithoutLeadingSlash}`,
+    queryParams: routeParams.queryParams,
   };
 };
 
-const changePath = ({ path, queryParams }: { path: string, queryParams: any }) => {
+const changePath = ({
+  path,
+  queryParams,
+}: {
+  path: string;
+  queryParams: any;
+}) => {
   let queryParamsString;
   if (queryParams) {
     queryParamsString = Object.keys(queryParams)
-      .filter(key => Object.hasOwn(queryParams, key))
+      .filter((key) => Object.hasOwn(queryParams, key))
       // @ts-ignore
-      .map(key => ({ key, value: queryParams[key] }))
-      .map(entry => {
+      .map((key) => ({ key, value: queryParams[key] }))
+      .map((entry) => {
         if (Array.isArray(entry.value)) {
-          return entry.value.map(value => `${entry.key}=${value}`).join('&');
+          return entry.value.map((value) => `${entry.key}=${value}`).join("&");
         }
         return `${entry.key}=${entry.value}`;
-      }).join('&');
+      })
+      .join("&");
   }
-  window.history.pushState({}, "", `${path}${queryParamsString && queryParamsString !== '' ? `?${queryParamsString}` : ''}`);
+  window.history.pushState(
+    {},
+    "",
+    `${path}${
+      queryParamsString && queryParamsString !== ""
+        ? `?${queryParamsString}`
+        : ""
+    }`
+  );
   currentRoute.value = path;
   currentQueryParams.value = queryParams;
 };
@@ -216,9 +238,7 @@ export const createRoute = <
 
 const parseWindowQueryParams = () => {
   const params = new Map<string, string[]>();
-  const entriesIterator = new URLSearchParams(
-    window.location.search
-  ).entries();
+  const entriesIterator = new URLSearchParams(window.location.search).entries();
   let entry = entriesIterator.next();
   while (!entry.done) {
     let values = params.get(entry.value[0]);
@@ -232,7 +252,7 @@ const parseWindowQueryParams = () => {
   }
 
   return Object.fromEntries(params.entries());
-}
+};
 
 const currentRoute = signal(window.location.pathname);
 const currentQueryParams = signal(parseWindowQueryParams());
@@ -241,10 +261,9 @@ export const createRouter = <
   TRoutes extends { [routeName: string]: string }
 >(routes: {
   [TRoute in keyof TRoutes]:
-  | Route<TRoutes[TRoute]>
-  | AsyncRoute<TRoutes[TRoute]>;
+    | Route<TRoutes[TRoute]>
+    | AsyncRoute<TRoutes[TRoute]>;
 }) => {
-
   const sortedRoutes = useMemo(
     () =>
       Object.keys(routes)
@@ -263,7 +282,7 @@ export const createRouter = <
           }
           return -1;
         }),
-    [currentRoute.value, routes]
+    [currentRoute.value, currentQueryParams.value, routes]
   );
 
   const match = useMemo(
@@ -282,11 +301,20 @@ export const createRouter = <
         .find((match) => {
           return !!match && !!match.match;
         }),
-    [matches, currentRoute.value]
+    [matches, currentQueryParams.value, currentRoute.value]
   );
 
   if (!match || !match?.match) {
     return { Router: () => <div>No matching routes</div>, routes };
+  }
+
+  if (
+    match.searchParamsValidator &&
+    !(match.searchParamsValidator as ZodObject<any>).safeParse(
+      currentQueryParams.value
+    ).success
+  ) {
+    return { Router: () => <div>Query params are not valid</div>, routes };
   }
 
   // FIXME: Ts server goes crazy if directly passed
