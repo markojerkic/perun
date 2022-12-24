@@ -310,7 +310,7 @@ export const createRouter = <
 
   if (
     currentQueryParams.value &&
-    Object.is(currentQueryParams, {}) &&
+    !Object.is(currentQueryParams, {}) &&
     match.searchParamsValidator &&
     !(match.searchParamsValidator as ZodObject<any>).safeParse(
       currentQueryParams.value
