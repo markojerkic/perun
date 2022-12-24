@@ -17,9 +17,14 @@ const TestComponent = ({ lastname, id }: { lastname?: string; id: string }) => {
 const TestComponent2 = ({
   country,
   player,
+  queryParams
 }: {
   country: string;
   player: string;
+  queryParams: {
+    ime: string;
+    prezime?: string;
+  } | undefined
 }) => {
   const toPerson = useCallback(() => {
     routes.value.lastNameId.routeTo({ lastname: "jerkic" });
@@ -29,6 +34,7 @@ const TestComponent2 = ({
       <div className="bg-red-200">
         <p>Zemlja: {country}</p>
         <div>Igrač: {player}</div>
+        <div>Query params: {JSON.stringify(queryParams)}</div>
         <button className="bg-blue-300" onClick={() => toPerson()}>
           Idemo na osobu jerkic
         </button>
@@ -43,7 +49,7 @@ export const routes = signal({
   plyersCountry: createRoute({
     routePattern: "/players/[country]/[playername]",
     renderComponent: (props) => (
-      <TestComponent2 country={props.country} player={props.playername} />
+      <TestComponent2 country={props.country} player={props.playername} queryParams={props.queryParams} />
     ),
     searchParamsValidator: validator,
   }),
@@ -80,7 +86,7 @@ export function App() {
   }, []);
 
   const toPlayer = useCallback(() => {
-    routes.value.plyersCountry.routeTo({ playername: "stipe", country: "hrv" });
+    routes.value.plyersCountry.routeTo({ playername: "stipe", country: "hrv", queryParams: { ime: 'marko' } });
   }, []);
 
   const toAsyncRoute = useCallback(() => {

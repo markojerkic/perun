@@ -29,13 +29,25 @@ const createPathParts = (route: string) => {
   return pathParts;
 };
 
-const matches = <TRoute extends string>({
+const matches = <
+  TRoute extends string,
+  TValidType extends ZodRawShape,
+  UnknownKeys extends UnknownKeysParam = "strip",
+  Catchall extends ZodTypeAny = ZodTypeAny,
+  Output = objectOutputType<TValidType, Catchall>
+>({
   currentRoute: route,
   routerPattern: testRoute,
 }: {
   currentRoute: string;
   routerPattern: TRoute;
-}): RouteParams<TRoute> | undefined => {
+}): RouteParamsWithOptionalQueryParams<
+  TRoute,
+  TValidType,
+  UnknownKeys,
+  Catchall,
+  Output
+> | undefined => {
   const routeParts = createPathParts(testRoute);
 
   const currentRouteParts = splitRoute(route);
@@ -73,15 +85,32 @@ const matches = <TRoute extends string>({
     }
     routePart = routeParts.shift();
   }
-  return pathParams as RouteParams<TRoute>;
+  return { ...pathParams, queryParams: currentQueryParams.value } as RouteParamsWithOptionalQueryParams<
+    TRoute,
+    TValidType,
+    UnknownKeys,
+    Catchall,
+    Output
+  >;
 };
 
-const routeTo = <TRoute extends string>({
+const routeTo = <TRoute extends string,
+  TValidType extends ZodRawShape,
+  UnknownKeys extends UnknownKeysParam = "strip",
+  Catchall extends ZodTypeAny = ZodTypeAny,
+  Output = objectOutputType<TValidType, Catchall>,
+>({
   routePattern,
   routeParams,
 }: {
   routePattern: TRoute;
-  routeParams: RouteParams<string>;
+  routeParams: AsyncRouteParamsWithOptionalQueryParams<
+    TRoute,
+    TValidType,
+    UnknownKeys,
+    Catchall,
+    Output
+  >;
 }) => {
   const pathWithoutLeadingSlash = routePattern
     .split("/")
@@ -96,14 +125,30 @@ const routeTo = <TRoute extends string>({
       return part;
     })
     .join("/");
-  return pathWithoutLeadingSlash.startsWith("/")
-    ? pathWithoutLeadingSlash
-    : `/${pathWithoutLeadingSlash}`;
+  return {
+    path: pathWithoutLeadingSlash.startsWith("/")
+      ? pathWithoutLeadingSlash
+      : `/${pathWithoutLeadingSlash}`, queryParams: routeParams.queryParams
+  };
 };
 
-const changePath = (path: string) => {
-  window.history.pushState({}, "", path);
+const changePath = ({ path, queryParams }: { path: string, queryParams: any }) => {
+  let queryParamsString;
+  if (queryParams) {
+    queryParamsString = Object.keys(queryParams)
+      .filter(key => Object.hasOwn(queryParams, key))
+      // @ts-ignore
+      .map(key => ({ key, value: queryParams[key] }))
+      .map(entry => {
+        if (Array.isArray(entry.value)) {
+          return entry.value.map(value => `${entry.key}=${value}`).join('&');
+        }
+        return `${entry.key}=${entry.value}`;
+      }).join('&');
+  }
+  window.history.pushState({}, "", `${path}${queryParamsString && queryParamsString !== '' ? `?${queryParamsString}` : ''}`);
   currentRoute.value = path;
+  currentQueryParams.value = queryParams;
 };
 
 export const createAsyncRoute = <
@@ -169,34 +214,36 @@ export const createRoute = <
   };
 };
 
+const parseWindowQueryParams = () => {
+  const params = new Map<string, string[]>();
+  const entriesIterator = new URLSearchParams(
+    window.location.search
+  ).entries();
+  let entry = entriesIterator.next();
+  while (!entry.done) {
+    let values = params.get(entry.value[0]);
+    if (!values) {
+      values = [entry.value[1]];
+    } else {
+      values = [...values, entry.value[1]];
+    }
+    params.set(entry.value[0], values);
+    entry = entriesIterator.next();
+  }
+
+  return Object.fromEntries(params.entries());
+}
+
 const currentRoute = signal(window.location.pathname);
+const currentQueryParams = signal(parseWindowQueryParams());
 
 export const createRouter = <
   TRoutes extends { [routeName: string]: string }
 >(routes: {
   [TRoute in keyof TRoutes]:
-    | Route<TRoutes[TRoute]>
-    | AsyncRoute<TRoutes[TRoute]>;
+  | Route<TRoutes[TRoute]>
+  | AsyncRoute<TRoutes[TRoute]>;
 }) => {
-  const queryParams = useMemo(() => {
-    const params = new Map<string, string[]>();
-    const entriesIterator = new URLSearchParams(
-      window.location.search
-    ).entries();
-    let entry = entriesIterator.next();
-    while (!entry.done) {
-      let values = params.get(entry.value[0]);
-      if (!values) {
-        values = [entry.value[1]];
-      } else {
-        values = [...values, entry.value[1]];
-      }
-      params.set(entry.value[0], values);
-      entry = entriesIterator.next();
-    }
-
-    return Object.fromEntries(params.entries());
-  }, []);
 
   const sortedRoutes = useMemo(
     () =>
