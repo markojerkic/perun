@@ -321,7 +321,6 @@ export const createRouter = <
 
   // FIXME: Ts server goes crazy if directly passed
   const matchedProps = match.match; //useMemo(() => match.match, [match.match]);
-  match.searchParamsValidator;
 
   return {
     Router: () => {

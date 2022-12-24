@@ -86,7 +86,6 @@ export function App() {
   }, []);
 
   const toPlayer = useCallback(() => {
-    console.log("payer");
     routes.value.plyersCountry.routeTo({
       playername: "stipe",
       country: "hrv",
