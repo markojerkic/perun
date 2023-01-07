@@ -1,12 +1,12 @@
 {
   "name": "perun",
   "private": false,
-  "version": "0.0.35",
-  "types": "dist/router.d.ts",
-  "main": "dist/router.tsx",
+  "version": "0.0.36",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
   "license": "MIT",
   "scripts": {
-    "build": "tsc && cp package.json ./dist/package.json",
+    "build": "rollup -c --bundleConfigAsCjs && cp package.json dist/package.json",
     "publish": "publish dist/"
   },
   "keywords": [
@@ -21,5 +21,16 @@
     "@preact/signals": "^1.1.2",
     "preact": "^10.11.3",
     "zod": "^3.20.2"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^24.0.0",
+    "@rollup/plugin-node-resolve": "^15.0.1",
+    "@rollup/plugin-typescript": "^11.0.0",
+    "@types/node": "^18.11.18",
+    "rollup": "^3.9.1",
+    "rollup-plugin-dts": "^5.1.1",
+    "rollup-plugin-peer-deps-external": "^2.2.4",
+    "rollup-plugin-postcss": "^4.0.2",
+    "rollup-plugin-terser": "^7.0.2"
   }
 }

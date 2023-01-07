@@ -1,5 +1,15 @@
 {
   "extends": "tsconfig/preact-library.json",
-  "include": ["."],
-  "exclude": ["dist", "build", "node_modules"]
+  "compilerOptions": {
+    "declaration": true,
+    "outDir": "dist"
+  },
+  "include": [
+    "."
+  ],
+  "exclude": [
+    "dist",
+    "build",
+    "node_modules"
+  ]
 }
