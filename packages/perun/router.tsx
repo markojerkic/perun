@@ -205,6 +205,39 @@ export const createAsyncRoute = <
     isAsync: true,
     renderComponent,
     routePattern,
+    Link: ({
+      routeParams,
+      children,
+    }: {
+      routeParams: RouteParamsWithOptionalQueryParams<
+        TRoute,
+        TValidType,
+        UnknownKeys,
+        Catchall,
+        Output
+      >;
+      children?: ComponentChildren;
+    }) => {
+      const routeObject = useMemo(
+        () => routeTo({ routePattern, routeParams }),
+        [routeParams, routePattern]
+      );
+
+      const href = useMemo(() => routeObjectToPath(routeObject), [routeObject]);
+      const handleClick = useCallback(
+        (e: Event) => {
+          e.preventDefault();
+          changePath(routeObject);
+        },
+        [routeObject]
+      );
+
+      return (
+        <a href={href} onClick={handleClick}>
+          <div>{children}</div>
+        </a>
+      );
+    },
     routeTo: (
       routeParams: AsyncRouteParamsWithOptionalQueryParams<
         TRoute,
@@ -215,20 +248,6 @@ export const createAsyncRoute = <
       >
     ) => changePath(routeTo({ routePattern, routeParams })),
   };
-};
-
-const LinkComponent: FunctionComponent<{
-  props: RouteParamsWithOptionalQueryParams<string, ZodRawShape>;
-  routePattern: string;
-}> = ({ props, routePattern, children }) => {
-  return (
-    <a href={""}>
-      <div>
-        {routePattern}
-        {children}
-      </div>
-    </a>
-  );
 };
 
 export const createRoute = <
