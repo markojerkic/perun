@@ -1,5 +1,5 @@
 import { signal } from "@preact/signals";
-import { useEffect, useMemo, useState } from "preact/hooks";
+import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
 import {
   objectInputType,
   objectOutputType,
@@ -43,12 +43,12 @@ const matches = <
   routerPattern: TRoute;
 }):
   | RouteParamsWithOptionalQueryParams<
-      TRoute,
-      TValidType,
-      UnknownKeys,
-      Catchall,
-      Output
-    >
+    TRoute,
+    TValidType,
+    UnknownKeys,
+    Catchall,
+    Output
+  >
   | undefined => {
   const routeParts = createPathParts(testRoute);
 
@@ -161,12 +161,11 @@ const changePath = ({
       .join("&");
   }
   window.history.pushState(
-    {},
+    { manual: true },
     "",
-    `${path}${
-      queryParamsString && queryParamsString !== ""
-        ? `?${queryParamsString}`
-        : ""
+    `${path}${queryParamsString && queryParamsString !== ""
+      ? `?${queryParamsString}`
+      : ""
     }`
   );
   currentRoute.value = path;
@@ -261,9 +260,10 @@ export const createRouter = <
   TRoutes extends { [routeName: string]: string }
 >(routes: {
   [TRoute in keyof TRoutes]:
-    | Route<TRoutes[TRoute]>
-    | AsyncRoute<TRoutes[TRoute]>;
+  | Route<TRoutes[TRoute]>
+  | AsyncRoute<TRoutes[TRoute]>;
 }) => {
+
   const sortedRoutes = useMemo(
     () =>
       Object.keys(routes)
@@ -284,6 +284,15 @@ export const createRouter = <
         }),
     [currentRoute.value, currentQueryParams.value, routes]
   );
+
+  const updateCurrentLocation = useCallback(() => {
+    currentRoute.value = window.location.pathname;
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('popstate', updateCurrentLocation);
+    return () => window.removeEventListener('popstate', updateCurrentLocation);
+  }, [currentRoute.value]);
 
   const match = useMemo(
     () =>
