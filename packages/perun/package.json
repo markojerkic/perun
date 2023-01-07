@@ -1,7 +1,7 @@
 {
   "name": "perun",
   "private": false,
-  "version": "0.0.1",
+  "version": "0.0.2",
   "types": "dist/types.d.ts",
   "main": "dist/index.tsx",
   "license": "MIT",
