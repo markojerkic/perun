@@ -1,12 +1,12 @@
 {
   "name": "perun",
   "private": false,
-  "version": "0.0.3",
+  "version": "0.0.31",
   "types": "dist/router.d.ts",
   "main": "dist/router.tsx",
   "license": "MIT",
   "scripts": {
-    "build": "tsc && cp package.json dist/package.json"
+    "build": "tsc && cp package.json dist/package.json",
     "publish": "publish dist/"
   },
   "keywords": [
