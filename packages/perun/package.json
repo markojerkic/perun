@@ -1,12 +1,12 @@
 {
   "name": "perun",
   "private": false,
-  "version": "0.0.38",
+  "version": "0.0.381",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "license": "MIT",
   "scripts": {
-    "build": "rollup -c --bundleConfigAsCjs && cp package.json dist/package.json",
+    "build": "rollup -c --bundleConfigAsCjs && cp package.json dist/package.json"
   },
   "keywords": [
     "preact",
