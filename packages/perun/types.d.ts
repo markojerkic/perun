@@ -44,6 +44,22 @@ export type RouteParamsWithOptionalQueryParams<
   Output = objectOutputType<TValidType, Catchall>
 > = RouteParams<TRoute> & { queryParams?: Output };
 
+export type Link<
+  TRoute extends string,
+  TValidType extends ZodRawShape,
+  UnknownKeys extends UnknownKeysParam = "strip",
+  Catchall extends ZodTypeAny = ZodTypeAny,
+  Output = objectOutputType<TValidType, Catchall>
+> = FunctionComponent<{
+  props: RouteParamsWithOptionalQueryParams<
+    TRoute,
+    TValidType,
+    UnknownKeys,
+    Catchall,
+    Output
+  >;
+}>;
+
 export type RouteOptions<
   TRoute extends string,
   TValidType extends ZodRawShape,

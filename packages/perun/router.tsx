@@ -1,4 +1,5 @@
 import { signal } from "@preact/signals";
+import { ComponentChildren, FunctionComponent } from "preact";
 import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
 import { JSXInternal } from "preact/src/jsx";
 import {
@@ -44,12 +45,12 @@ const matches = <
   routerPattern: TRoute;
 }):
   | RouteParamsWithOptionalQueryParams<
-    TRoute,
-    TValidType,
-    UnknownKeys,
-    Catchall,
-    Output
-  >
+      TRoute,
+      TValidType,
+      UnknownKeys,
+      Catchall,
+      Output
+    >
   | undefined => {
   const routeParts = createPathParts(testRoute);
 
@@ -140,7 +141,7 @@ const routeTo = <
   };
 };
 
-const changePath = ({
+const routeObjectToPath = ({
   path,
   queryParams,
 }: {
@@ -161,13 +162,22 @@ const changePath = ({
       })
       .join("&");
   }
+  return `${path}${
+    queryParamsString && queryParamsString !== "" ? `?${queryParamsString}` : ""
+  }`;
+};
+
+const changePath = ({
+  path,
+  queryParams,
+}: {
+  path: string;
+  queryParams: any;
+}) => {
   window.history.pushState(
     { manual: true },
     "",
-    `${path}${queryParamsString && queryParamsString !== ""
-      ? `?${queryParamsString}`
-      : ""
-    }`
+    routeObjectToPath({ path, queryParams })
   );
   currentRoute.value = path;
   currentQueryParams.value = queryParams;
@@ -207,6 +217,20 @@ export const createAsyncRoute = <
   };
 };
 
+const LinkComponent: FunctionComponent<{
+  props: RouteParamsWithOptionalQueryParams<string, ZodRawShape>;
+  routePattern: string;
+}> = ({ props, routePattern, children }) => {
+  return (
+    <a href={""}>
+      <div>
+        {routePattern}
+        {children}
+      </div>
+    </a>
+  );
+};
+
 export const createRoute = <
   TRoute extends string,
   TValidType extends ZodRawShape,
@@ -223,6 +247,39 @@ export const createRoute = <
     isAsync: false,
     renderComponent,
     routePattern,
+    Link: ({
+      routeParams,
+      children,
+    }: {
+      routeParams: RouteParamsWithOptionalQueryParams<
+        TRoute,
+        TValidType,
+        UnknownKeys,
+        Catchall,
+        Output
+      >;
+      children?: ComponentChildren;
+    }) => {
+      const routeObject = useMemo(
+        () => routeTo({ routePattern, routeParams }),
+        [routeParams, routePattern]
+      );
+
+      const href = useMemo(() => routeObjectToPath(routeObject), [routeObject]);
+      const handleClick = useCallback(
+        (e: Event) => {
+          e.preventDefault();
+          changePath(routeObject);
+        },
+        [routeObject]
+      );
+
+      return (
+        <a href={href} onClick={handleClick}>
+          <div>{children}</div>
+        </a>
+      );
+    },
     searchParamsValidator,
     routeTo: (
       routeParams: RouteParamsWithOptionalQueryParams<
@@ -257,14 +314,14 @@ const parseWindowQueryParams = () => {
 const currentRoute = signal(window.location.pathname);
 const currentQueryParams = signal(parseWindowQueryParams());
 
-export const createRouter = <
-  TRoutes extends { [routeName: string]: string }
->(routes: {
-  [TRoute in keyof TRoutes]:
-  Route<TRoutes[TRoute]>
-  | AsyncRoute<TRoutes[TRoute]>;
-}, noRoutesMatch: () => JSXInternal.Element) => {
-
+export const createRouter = <TRoutes extends { [routeName: string]: string }>(
+  routes: {
+    [TRoute in keyof TRoutes]:
+      | Route<TRoutes[TRoute]>
+      | AsyncRoute<TRoutes[TRoute]>;
+  },
+  noRoutesMatch: () => JSXInternal.Element
+) => {
   const sortedRoutes = useMemo(
     () =>
       Object.keys(routes)
@@ -291,8 +348,8 @@ export const createRouter = <
   }, []);
 
   useEffect(() => {
-    window.addEventListener('popstate', updateCurrentLocation);
-    return () => window.removeEventListener('popstate', updateCurrentLocation);
+    window.addEventListener("popstate", updateCurrentLocation);
+    return () => window.removeEventListener("popstate", updateCurrentLocation);
   }, [currentRoute.value]);
 
   const match = useMemo(

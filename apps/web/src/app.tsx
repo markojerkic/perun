@@ -22,11 +22,11 @@ const TestComponent2 = ({
   country: string;
   player: string;
   queryParams:
-  | {
-    ime: string;
-    prezime?: string;
-  }
-  | undefined;
+    | {
+        ime: string;
+        prezime?: string;
+      }
+    | undefined;
 }) => {
   const toPerson = useCallback(() => {
     routes.value.lastNameId.routeTo({ lastname: "jerkic" });
@@ -75,10 +75,8 @@ export const routes = signal({
 });
 
 const NoRoutesMatch = () => {
-  return (
-    <div>404, requested route is not defined :(</div>
-  )
-}
+  return <div>404, requested route is not defined :(</div>;
+};
 
 export const App = () => {
   const router = createRouter(routes.value, NoRoutesMatch);
@@ -107,6 +105,9 @@ export const App = () => {
     <>
       <p>Bok, ovo je moj router :)</p>
       <div class="flex space-x-4 my-4">
+        <routes.value.lastNameId.Link routeParams={{ lastname: "marko" }}>
+          Na igrač marko ajde
+        </routes.value.lastNameId.Link>
         <button className="bg-red-300" onClick={() => toPlayer()}>
           Idemo na igrač stipe iz hrv
         </button>
@@ -123,4 +124,4 @@ export const App = () => {
       <router.Router />
     </>
   );
-}
+};
