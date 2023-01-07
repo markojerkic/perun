@@ -2,14 +2,21 @@
   "extends": "tsconfig/preact-library.json",
   "compilerOptions": {
     "declaration": true,
-    "outDir": "dist"
+    "emitDeclarationOnly": true,
+    "outDir": "dist",
+    "baseUrl": ".",
+    "paths": {
+      "*": [
+        "src/*"
+      ]
+    }
   },
   "include": [
-    "."
+    "src"
   ],
   "exclude": [
     "dist",
     "build",
     "node_modules"
-  ]
+  ],
 }

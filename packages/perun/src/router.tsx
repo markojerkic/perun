@@ -1,5 +1,5 @@
 import { signal } from "@preact/signals";
-import { ComponentChildren, FunctionComponent } from "preact";
+import { ComponentChildren } from "preact";
 import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
 import { JSXInternal } from "preact/src/jsx";
 import {
@@ -333,10 +333,17 @@ const parseWindowQueryParams = () => {
 const currentRoute = signal(window.location.pathname);
 const currentQueryParams = signal(parseWindowQueryParams());
 
-export const createRouter = <TRoutes extends { [routeName: string]: string }>(
+export const createRouter = <
+  TRoutes extends { [routeName: string]: string },
+  TValidType extends ZodRawShape,
+  UnknownKeys extends UnknownKeysParam = "strip",
+  Catchall extends ZodTypeAny = ZodTypeAny,
+  Output = objectOutputType<TValidType, Catchall>,
+  Input = objectInputType<TValidType, Catchall>
+>(
   routes: {
     [TRoute in keyof TRoutes]:
-      | Route<TRoutes[TRoute]>
+      | Route<TRoutes[TRoute], TValidType, UnknownKeys, Catchall, Output, Input>
       | AsyncRoute<TRoutes[TRoute]>;
   },
   noRoutesMatch: () => JSXInternal.Element
