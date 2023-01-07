@@ -2,17 +2,15 @@
   "name": "perun",
   "private": false,
   "version": "0.0.0",
-  "types": "./dist/types.d.ts",
-  "main": "./dist/index.tsx",
+  "types": "dist/types.d.ts",
+  "main": "dist/index.tsx",
+  "license": "MIT",
   "scripts": {
-    "build": "tsup ./router.tsx --format cjs --dts"
+    "build": "tsc && cp package.json dist"
   },
   "dependencies": {
     "@preact/signals": "^1.1.2",
     "preact": "^10.11.3",
     "zod": "^3.20.2"
-  },
-  "devDependencies": {
-    "tsup": "^6.5.0"
   }
 }
