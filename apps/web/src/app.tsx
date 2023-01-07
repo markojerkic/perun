@@ -22,11 +22,11 @@ const TestComponent2 = ({
   country: string;
   player: string;
   queryParams:
-    | {
-        ime: string;
-        prezime?: string;
-      }
-    | undefined;
+  | {
+    ime: string;
+    prezime?: string;
+  }
+  | undefined;
 }) => {
   const toPerson = useCallback(() => {
     routes.value.lastNameId.routeTo({ lastname: "jerkic" });
@@ -74,8 +74,14 @@ export const routes = signal({
   }),
 });
 
-export function App() {
-  const router = createRouter(routes.value);
+const NoRoutesMatch = () => {
+  return (
+    <div>404, requested route is not defined :(</div>
+  )
+}
+
+export const App = () => {
+  const router = createRouter(routes.value, NoRoutesMatch);
 
   const toPersonWithId = useCallback(() => {
     routes.value.lastNameId.routeTo({ id: "marko", lastname: "jerkic" });

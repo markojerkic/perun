@@ -1,5 +1,6 @@
 import { signal } from "@preact/signals";
 import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
+import { JSXInternal } from "preact/src/jsx";
 import {
   objectInputType,
   objectOutputType,
@@ -260,9 +261,9 @@ export const createRouter = <
   TRoutes extends { [routeName: string]: string }
 >(routes: {
   [TRoute in keyof TRoutes]:
-  | Route<TRoutes[TRoute]>
+  Route<TRoutes[TRoute]>
   | AsyncRoute<TRoutes[TRoute]>;
-}) => {
+}, noRoutesMatch: () => JSXInternal.Element) => {
 
   const sortedRoutes = useMemo(
     () =>
@@ -314,7 +315,7 @@ export const createRouter = <
   );
 
   if (!match || !match?.match) {
-    return { Router: () => <div>No matching routes</div>, routes };
+    return { Router: noRoutesMatch, routes };
   }
 
   if (
