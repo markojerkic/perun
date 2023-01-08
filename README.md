@@ -90,9 +90,9 @@ export const routes = {
         routePattern: "/players/[country]/[playername]",
         renderComponent: (({ country, playername, queryParams })) => (
             <TestComponent2
-                country={props.country}
-                player={props.playername}
-                queryParams={props.queryParams}
+                country={country}
+                player={playername}
+                queryParams={queryParams}
             />
         ),
         searchParamsValidator: z.object({
