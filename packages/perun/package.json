@@ -1,13 +1,27 @@
 {
   "name": "perun",
+  "author": {
+    "name": "Marko Jerkić",
+    "email": "markojerkic266@gmail.com",
+    "url": "github.com/markojerkic"
+  },
+  "description": "Simple 100% typesafe router for Preact using Preact signals and Zod",
   "private": false,
-  "version": "0.0.381",
+  "version": "0.1.0",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
+  "types": "dist/index.d.ts",
   "license": "MIT",
   "scripts": {
-    "build": "rollup -c --bundleConfigAsCjs && cp package.json dist/package.json"
+    "build": "rollup -c && cp package.json dist/package.json",
+    "dev": "rm -rf dist && rollup -cw && cp package.json dist/package.json",
+    "prebuild": "rm -rf dist",
+    "prepublish": "build"
   },
+  "files": [
+    "dist",
+    "package.json"
+  ],
   "keywords": [
     "preact",
     "router",

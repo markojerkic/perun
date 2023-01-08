@@ -1,4 +1,13 @@
-import { UnknownKeysParam, ZodAny, ZodObject } from "zod";
+import { FunctionComponent } from "preact";
+import { JSXInternal } from "preact/src/jsx";
+import {
+  objectInputType,
+  objectOutputType,
+  UnknownKeysParam,
+  ZodObject,
+  ZodRawShape,
+  ZodTypeAny,
+} from "zod";
 
 type IsParameter<Part> = Part extends `[${infer ParamName}]`
   ? ParamName
@@ -42,7 +51,9 @@ export type RouteParamsWithOptionalQueryParams<
   UnknownKeys extends UnknownKeysParam = "strip",
   Catchall extends ZodTypeAny = ZodTypeAny,
   Output = objectOutputType<TValidType, Catchall>
-> = RouteParams<TRoute> & { queryParams?: Output };
+> = RouteParams<TRoute> & {
+  queryParams?: Output extends ZodTypeAny ? never : Output;
+};
 
 export type Link<
   TRoute extends string,
@@ -78,7 +89,7 @@ export type RouteOptions<
       Output
     >
   ) => JSXInternal.Element;
-  searchParamsValidator?: ZodObject<
+  searchParamsValidator: ZodObject<
     TValidType,
     UnknownKeys,
     Catchall,
@@ -88,7 +99,14 @@ export type RouteOptions<
 };
 
 type TAsyncUtil = { isAsync: boolean };
-export type Route<TRoute extends string> = RouteOptions<TRoute> & {
+export type Route<
+  TRoute extends string,
+  TValidType extends ZodRawShape,
+  UnknownKeys extends UnknownKeysParam = "strip",
+  Catchall extends ZodTypeAny = ZodTypeAny,
+  Output = objectOutputType<TValidType, Catchall>,
+  Input = objectInputType<TValidType, Catchall>
+> = RouteOptions<TRoute, TValidType, UnknownKeys, Catchall, Output, Input> & {
   routeTo: (routeParams: RouteParams<TRoute>) => void;
 } & TAsyncUtil;
 
@@ -120,7 +138,7 @@ export type AsyncRouteOptions<
       Output
     >
   ) => Promise<JSXInternal.Element>;
-  searchParamsValidator?: ZodObject<
+  searchParamsValidator: ZodObject<
     TValidType,
     UnknownKeys,
     Catchall,
@@ -129,7 +147,20 @@ export type AsyncRouteOptions<
   >;
 };
 
-export type AsyncRoute<TAsyncRoute extends string> =
-  AsyncRouteOptions<TAsyncRoute> & {
-    routeTo: (routeParams: AsyncRouteParams<TAsyncRoute>) => void;
-  } & TAsyncUtil;
+export type AsyncRoute<
+  TAsyncRoute extends string,
+  TValidType extends ZodRawShape,
+  UnknownKeys extends UnknownKeysParam = "strip",
+  Catchall extends ZodTypeAny = ZodTypeAny,
+  Output = objectOutputType<TValidType, Catchall>,
+  Input = objectInputType<TValidType, Catchall>
+> = AsyncRouteOptions<
+  TAsyncRoute,
+  TValidType,
+  UnknownKeys,
+  Catchall,
+  Output,
+  Input
+> & {
+  routeTo: (routeParams: AsyncRouteParams<TAsyncRoute>) => void;
+} & TAsyncUtil;
