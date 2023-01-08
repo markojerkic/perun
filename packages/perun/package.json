@@ -7,7 +7,7 @@
   },
   "description": "Simple 100% typesafe router for Preact using Preact signals and Zod",
   "private": false,
-  "version": "0.0.381",
+  "version": "0.1.0",
   "main": "dist/cjs/index.js",
   "module": "dist/esm/index.js",
   "types": "dist/index.d.ts",
