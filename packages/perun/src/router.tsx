@@ -1,20 +1,18 @@
 import { signal } from "@preact/signals";
-import { ComponentChildren } from "preact";
+import { ComponentChildren, FunctionComponent } from "preact";
 import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
-import { JSXInternal } from "preact/src/jsx";
 import {
   objectInputType,
   objectOutputType,
   UnknownKeysParam,
+  z,
   ZodObject,
   ZodRawShape,
   ZodTypeAny,
 } from "zod";
 import {
-  AsyncRoute,
   AsyncRouteOptions,
   AsyncRouteParamsWithOptionalQueryParams,
-  Route,
   RouteOptions,
   RouteParamsWithOptionalQueryParams,
 } from "./types";
@@ -193,6 +191,7 @@ export const createAsyncRoute = <
 >({
   routePattern,
   renderComponent,
+  searchParamsValidator,
 }: AsyncRouteOptions<
   TRoute,
   TValidType,
@@ -205,6 +204,7 @@ export const createAsyncRoute = <
     isAsync: true,
     renderComponent,
     routePattern,
+    searchParamsValidator,
     Link: ({
       routeParams,
       children,
@@ -333,21 +333,26 @@ const parseWindowQueryParams = () => {
 const currentRoute = signal(window.location.pathname);
 const currentQueryParams = signal(parseWindowQueryParams());
 
-export const createRouter = <
-  TRoutes extends { [routeName: string]: string },
-  TValidType extends ZodRawShape,
-  UnknownKeys extends UnknownKeysParam = "strip",
-  Catchall extends ZodTypeAny = ZodTypeAny,
-  Output = objectOutputType<TValidType, Catchall>,
-  Input = objectInputType<TValidType, Catchall>
->(
-  routes: {
-    [TRoute in keyof TRoutes]:
-      | Route<TRoutes[TRoute], TValidType, UnknownKeys, Catchall, Output, Input>
-      | AsyncRoute<TRoutes[TRoute]>;
-  },
-  noRoutesMatch: () => JSXInternal.Element
-) => {
+type RouteCreator<
+  TRoute extends string
+  //TValidType extends ZodRawShape,
+  //UnknownKeys extends UnknownKeysParam = "strip",
+  //Catchall extends ZodTypeAny = ZodTypeAny,
+  //Output = objectOutputType<TValidType, Catchall>
+> = ReturnType<typeof createRoute<TRoute, any, any, any, any, any>>;
+type AsyncRouteCreator<TRoute extends string> = ReturnType<
+  typeof createAsyncRoute<TRoute, any, any, any, any, any>
+>;
+
+export type TRouteCreator = RouteCreator<any> | AsyncRouteCreator<any>;
+
+export const createRouter = ({
+  routes,
+  noRoutesMatch,
+}: {
+  routes: { [routeName: string]: TRouteCreator | any };
+  noRoutesMatch: FunctionComponent;
+}) => {
   const sortedRoutes = useMemo(
     () =>
       Object.keys(routes)
@@ -418,11 +423,13 @@ export const createRouter = <
   return {
     Router: () => {
       if (!match.isAsync) {
+        // @ts-ignore
         return <>{match.renderComponent(matchedProps)}</>;
       }
       const [asyncComponent, setAsyncComponent] = useState();
       useEffect(() => {
         const load = async () => {
+          // @ts-ignore
           setAsyncComponent(await match.renderComponent(matchedProps));
         };
         load();

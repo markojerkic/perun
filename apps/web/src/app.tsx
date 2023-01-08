@@ -1,7 +1,11 @@
+import {
+  createAsyncRoute,
+  createRoute,
+  createRouter,
+  TRouteCreator,
+} from "perun/src";
 import { useCallback } from "preact/hooks";
-import { signal } from "@preact/signals";
 import { z } from "zod";
-import { createRouter, createRoute, createAsyncRoute } from "perun/src";
 
 const TestComponent = ({ lastname, id }: { lastname?: string; id: string }) => {
   return (
@@ -29,7 +33,7 @@ const TestComponent2 = ({
     | undefined;
 }) => {
   const toPerson = useCallback(() => {
-    routes.value.lastNameId.routeTo({ lastname: "jerkic" });
+    routes.lastNameId.routeTo({ lastname: "jerkic" });
   }, []);
   return (
     <>
@@ -45,52 +49,64 @@ const TestComponent2 = ({
   );
 };
 
-const validator = z.object({ ime: z.string(), prezime: z.string().optional() });
-
-export const routes = signal({
-  plyersCountry: createRoute({
-    routePattern: "/players/[country]/[playername]",
-    renderComponent: (props) => (
-      <TestComponent2
-        country={props.country}
-        player={props.playername}
-        queryParams={props.queryParams}
-      />
-    ),
-    searchParamsValidator: validator,
-  }),
-  lastNameId: createRoute({
-    routePattern: "/[id?]/ime/[lastname]",
-    renderComponent: (props) => (
-      <TestComponent lastname={props.lastname} id={props.id ?? "name id"} />
-    ),
-  }),
-  asyncRoute: createAsyncRoute({
-    routePattern: "/async/[route]",
-    renderComponent: (props) =>
-      import("./async").then((module) => (
-        <module.AsyncComponent route={props.route} />
-      )),
+const plyersCountry = createRoute({
+  routePattern: "/players/[country]/[playername]",
+  renderComponent: (props) => (
+    <TestComponent2
+      country={props.country}
+      player={props.playername}
+      queryParams={props.queryParams}
+    />
+  ),
+  searchParamsValidator: z.object({
+    ime: z.string(),
+    prezime: z.string().optional(),
   }),
 });
+
+const lastNameId = createRoute({
+  routePattern: "/[id?]/ime/[lastname]",
+  renderComponent: (props) => (
+    <TestComponent lastname={props.lastname} id={props.id ?? "name id"} />
+  ),
+  searchParamsValidator: z.object({}),
+});
+
+const asyncRoute = createAsyncRoute({
+  routePattern: "/async/[route]",
+  renderComponent: (props) =>
+    import("./async").then((module) => (
+      <module.AsyncComponent route={props.route} />
+    )),
+  searchParamsValidator: z.object({}),
+});
+
+export const routes = {
+  plyersCountry,
+  lastNameId,
+  asyncRoute,
+};
 
 const NoRoutesMatch = () => {
   return <div>404, requested route is not defined :(</div>;
 };
 
 export const App = () => {
-  const router = createRouter(routes.value, NoRoutesMatch);
+  const router = createRouter({
+    routes,
+    noRoutesMatch: NoRoutesMatch,
+  });
 
   const toPersonWithId = useCallback(() => {
-    routes.value.lastNameId.routeTo({ id: "marko", lastname: "jerkic" });
+    routes.lastNameId.routeTo({ id: "marko", lastname: "jerkic" });
   }, []);
 
   const toPerson = useCallback(() => {
-    routes.value.lastNameId.routeTo({ lastname: "jerkic" });
+    routes.lastNameId.routeTo({ lastname: "jerkic" });
   }, []);
 
   const toPlayer = useCallback(() => {
-    routes.value.plyersCountry.routeTo({
+    routes.plyersCountry.routeTo({
       playername: "stipe",
       country: "hrv",
       queryParams: { ime: "marko" },
@@ -98,16 +114,16 @@ export const App = () => {
   }, []);
 
   const toAsyncRoute = useCallback(() => {
-    routes.value.asyncRoute.routeTo({ route: "neka" });
+    routes.asyncRoute.routeTo({ route: "neka" });
   }, []);
 
   return (
     <>
       <p>Bok, ovo je moj router :)</p>
       <div class="flex space-x-4 my-4">
-        <routes.value.lastNameId.Link routeParams={{ lastname: "marko" }}>
+        <routes.lastNameId.Link routeParams={{ lastname: "marko" }}>
           Na igrač marko ajde
-        </routes.value.lastNameId.Link>
+        </routes.lastNameId.Link>
         <button className="bg-red-300" onClick={() => toPlayer()}>
           Idemo na igrač stipe iz hrv
         </button>

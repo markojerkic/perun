@@ -4,7 +4,6 @@ import {
   objectInputType,
   objectOutputType,
   UnknownKeysParam,
-  ZodAny,
   ZodObject,
   ZodRawShape,
   ZodTypeAny,
@@ -52,7 +51,9 @@ export type RouteParamsWithOptionalQueryParams<
   UnknownKeys extends UnknownKeysParam = "strip",
   Catchall extends ZodTypeAny = ZodTypeAny,
   Output = objectOutputType<TValidType, Catchall>
-> = RouteParams<TRoute> & { queryParams?: Output };
+> = RouteParams<TRoute> & {
+  queryParams?: Output extends ZodTypeAny ? never : Output;
+};
 
 export type Link<
   TRoute extends string,
@@ -88,7 +89,7 @@ export type RouteOptions<
       Output
     >
   ) => JSXInternal.Element;
-  searchParamsValidator?: ZodObject<
+  searchParamsValidator: ZodObject<
     TValidType,
     UnknownKeys,
     Catchall,
@@ -137,7 +138,7 @@ export type AsyncRouteOptions<
       Output
     >
   ) => Promise<JSXInternal.Element>;
-  searchParamsValidator?: ZodObject<
+  searchParamsValidator: ZodObject<
     TValidType,
     UnknownKeys,
     Catchall,

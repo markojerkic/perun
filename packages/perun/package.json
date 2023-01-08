@@ -14,11 +14,9 @@
   "license": "MIT",
   "scripts": {
     "build": "rollup -c && cp package.json dist/package.json",
+    "dev": "rm -rf dist && rollup -cw && cp package.json dist/package.json",
     "prebuild": "rm -rf dist",
     "prepublish": "build"
-  },
-  "exports": {
-    "*": "./dist/esm/index.js"
   },
   "files": [
     "dist",
