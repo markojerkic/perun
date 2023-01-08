@@ -1,73 +1,103 @@
-# Turborepo starter
+# perun
 
-This is an official Yarn v1 starter turborepo.
+[![NPM](https://img.shields.io/npm/v/perun.svg)](https://www.npmjs.com/package/perun)
+[![Build status](https://github.com/markojerkic/perun/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/markojerkic/perun/actions/workflows/npm-publish.yml)
 
-## What's inside?
+Simple 100% typesafe router for Preact using Preact signals and Zod.
 
-This turborepo uses [Yarn](https://classic.yarnpkg.com/) as a package manager. It includes the following packages/apps:
+# Table of contents
 
-### Apps and Packages
+-   [Install](#install)
+-   [Usage](#usage)
+    -   [Example with three routes](#example-with-three-routes)
+-   [Api](#api)
+    - [createRoute](#createroute)
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `ui`: a stub React component library shared by both `web` and `docs` applications
-- `eslint-config-custom`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `tsconfig`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
+## Install
 
 ```
-cd my-turborepo
-yarn run build
+npm install perun
 ```
 
-### Develop
-
-To develop all apps and packages, run the following command:
+Or, if you are using yarn:
 
 ```
-cd my-turborepo
-yarn run dev
+yarn add perun
 ```
 
-### Remote Caching
+## Usage
 
-Turborepo can use a technique known as [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+#### Example with three routes
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup), then enter the following commands:
+```tsx
+export const routes = {
+    plyersCountry: createRoute({
+        routePattern: "/players/[country]/[playername]",
+        renderComponent: (props) => (
+            <TestComponent2
+                country={props.country}
+                player={props.playername}
+                queryParams={props.queryParams}
+            />
+        ),
+        searchParamsValidator: z.object({
+            ime: z.string(),
+            prezime: z.string().optional(),
+        }),
+    }),
 
+    lastNameId: createRoute({
+        routePattern: "/[id?]/ime/[lastname]",
+        renderComponent: (props) => (
+            <TestComponent
+                lastname={props.lastname}
+                id={props.id ?? "name id"}
+            />
+        ),
+        searchParamsValidator: z.object({}),
+    }),
+
+    asyncRoute: createAsyncRoute({
+        routePattern: "/async/[route]",
+        renderComponent: (props) =>
+            import("./async").then((module) => (
+                <module.AsyncComponent route={props.route} />
+            )),
+        searchParamsValidator: z.object({}),
+    }),
+};
 ```
-cd my-turborepo
-npx turbo login
-```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+## Api
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your turborepo:
+### createRoute
 
-```
-npx turbo link
-```
+`createRoute` function takes three parameters:
 
-## Useful Links
+-   `routePatter: string`
+    -   This is a string representation of the route. The route must start with `/`, and must not end with `/`
+    -   Dynamic route parts are indicated by: `[variableName]`
+        -   If this is an optional part of the route, you should put an `?` at the end of the variable name. This does not mean that the variable will be called e.g. `variableName`. Instead the type of the variable will just be `string | undefind`
+- `searchParamsValidator: ZodObject`
+    - This prop contains a [Zod](https://github.com/colinhacks/zod) validator. The validator object should only be one dimensional (nesting is not supported).
+    - If query params are not required, you should pass an empty zod object, e.g. `z.object({})`
+-   `renderComponent: (props: RouteParamsWithOptionalQueryParams<TRoute, ...> ) => Component`
+    - This is a callback functio which should return a Preact component. The `props` contain dynamic parts of the route which will be of type `string` or `string | undefined` (if indicated that the route part is optional), and `queryParams` object which will contain the query params vlidated by the `zod` validator passed through `searchParamsValidator`.
 
-Learn more about the power of Turborepo:
 
-- [Pipelines](https://turbo.build/repo/docs/core-concepts/monorepos/running-tasks)
-- [Caching](https://turbo.build/repo/docs/core-concepts/caching)
-- [Remote Caching](https://turbo.build/repo/docs/core-concepts/remote-caching)
-- [Filtering](https://turbo.build/repo/docs/core-concepts/monorepos/filtering)
-- [Configuration Options](https://turbo.build/repo/docs/reference/configuration)
-- [CLI Usage](https://turbo.build/repo/docs/reference/command-line-reference)
+```tsx
+{
+        routePattern: "/players/[country]/[playername]",
+        renderComponent: (({ country, playername, queryParams })) => (
+            <TestComponent2
+                country={props.country}
+                player={props.playername}
+                queryParams={props.queryParams}
+            />
+        ),
+        searchParamsValidator: z.object({
+            ime: z.string(),
+            prezime: z.string().optional(),
+        }),
+    }
+````
