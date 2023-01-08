@@ -49,42 +49,38 @@ const TestComponent2 = ({
   );
 };
 
-const plyersCountry = createRoute({
-  routePattern: "/players/[country]/[playername]",
-  renderComponent: (props) => (
-    <TestComponent2
-      country={props.country}
-      player={props.playername}
-      queryParams={props.queryParams}
-    />
-  ),
-  searchParamsValidator: z.object({
-    ime: z.string(),
-    prezime: z.string().optional(),
-  }),
-});
-
-const lastNameId = createRoute({
-  routePattern: "/[id?]/ime/[lastname]",
-  renderComponent: (props) => (
-    <TestComponent lastname={props.lastname} id={props.id ?? "name id"} />
-  ),
-  searchParamsValidator: z.object({}),
-});
-
-const asyncRoute = createAsyncRoute({
-  routePattern: "/async/[route]",
-  renderComponent: (props) =>
-    import("./async").then((module) => (
-      <module.AsyncComponent route={props.route} />
-    )),
-  searchParamsValidator: z.object({}),
-});
-
 export const routes = {
-  plyersCountry,
-  lastNameId,
-  asyncRoute,
+  plyersCountry: createRoute({
+    routePattern: "/players/[country]/[playername]",
+    renderComponent: (props) => (
+      <TestComponent2
+        country={props.country}
+        player={props.playername}
+        queryParams={props.queryParams}
+      />
+    ),
+    searchParamsValidator: z.object({
+      ime: z.string(),
+      prezime: z.string().optional(),
+    }),
+  }),
+
+  lastNameId: createRoute({
+    routePattern: "/[id?]/ime/[lastname]",
+    renderComponent: (props) => (
+      <TestComponent lastname={props.lastname} id={props.id ?? "name id"} />
+    ),
+    searchParamsValidator: z.object({}),
+  }),
+
+  asyncRoute: createAsyncRoute({
+    routePattern: "/async/[route]",
+    renderComponent: (props) =>
+      import("./async").then((module) => (
+        <module.AsyncComponent route={props.route} />
+      )),
+    searchParamsValidator: z.object({}),
+  }),
 };
 
 const NoRoutesMatch = () => {
