@@ -4,7 +4,6 @@ import {
 } from "./types";
 import {
   objectOutputType,
-  UnknownKeysParam,
   ZodRawShape,
   ZodTypeAny,
 } from "zod";
@@ -45,7 +44,6 @@ export const parseWindowQueryParams = () => {
 export const routeTo = <
   TRoute extends string,
   TValidType extends ZodRawShape,
-  UnknownKeys extends UnknownKeysParam = "strip",
   Catchall extends ZodTypeAny = ZodTypeAny,
   Output = objectOutputType<TValidType, Catchall>
 >({
@@ -56,7 +54,6 @@ export const routeTo = <
   routeParams: AsyncRouteParamsWithOptionalQueryParams<
     TRoute,
     TValidType,
-    UnknownKeys,
     Catchall,
     Output
   >;
@@ -123,7 +120,6 @@ const createPathParts = (route: string) => {
 export const matches = <
   TRoute extends string,
   TValidType extends ZodRawShape,
-  UnknownKeys extends UnknownKeysParam = "strip",
   Catchall extends ZodTypeAny = ZodTypeAny,
   Output = objectOutputType<TValidType, Catchall>
 >({
@@ -136,7 +132,6 @@ export const matches = <
   | RouteParamsWithOptionalQueryParams<
       TRoute,
       TValidType,
-      UnknownKeys,
       Catchall,
       Output
     >
@@ -184,7 +179,6 @@ export const matches = <
   } as RouteParamsWithOptionalQueryParams<
     TRoute,
     TValidType,
-    UnknownKeys,
     Catchall,
     Output
   >;

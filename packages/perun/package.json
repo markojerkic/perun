@@ -29,7 +29,8 @@
     "queryparams"
   ],
   "files": [
-    "dist"
+    "dist",
+    ".../../README.md"
   ],
   "peerDependencies": {
     "@preact/signals": ">=1.1",

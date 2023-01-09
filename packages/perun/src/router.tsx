@@ -16,7 +16,6 @@ import {
 import {
   AsyncRoute,
   AsyncRouteOptions,
-  AsyncRouteParamsWithOptionalQueryParams,
   Route,
   RouteOptions,
   RouteParamsWithOptionalQueryParams,
@@ -32,7 +31,6 @@ import {
 const Link = <
   TRoute extends string,
   TValidType extends ZodRawShape,
-  UnknownKeys extends UnknownKeysParam = "strip",
   Catchall extends ZodTypeAny = ZodTypeAny,
   Output = objectOutputType<TValidType, Catchall>
 >({
@@ -44,7 +42,6 @@ const Link = <
   routeParams: RouteParamsWithOptionalQueryParams<
     TRoute,
     TValidType,
-    UnknownKeys,
     Catchall,
     Output
   >;
