@@ -95,11 +95,11 @@ export const createAsyncRoute = <
     renderComponent,
     routePattern,
     searchParamsValidator,
-    Link: ({ routeParams, children }) => (
+    Link: (props) => (
       <Link
-        children={children}
+        children={props.children}
         routePattern={routePattern}
-        routeParams={routeParams}
+        routeParams={{ ...props, children: undefined }}
       />
     ),
     routeTo: (routeParams) =>
@@ -131,11 +131,11 @@ export const createRoute = <
     renderComponent,
     routePattern,
     searchParamsValidator,
-    Link: ({ routeParams, children }) => (
+    Link: (props) => (
       <Link
-        children={children}
+        children={props.children}
         routePattern={routePattern}
-        routeParams={routeParams}
+        routeParams={{ ...props, children: undefined }}
       />
     ),
     routeTo: (routeParams) =>

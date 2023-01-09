@@ -108,9 +108,13 @@ export const App = () => {
     <>
       <p>Bok, ovo je moj router :)</p>
       <div class="flex space-x-4 my-4">
-        <routes.lastNameId.Link routeParams={{ lastname: "jerkic" }}>
+        <routes.plyersCountry.Link
+          playername="Marko"
+          country="Hrvatska"
+          queryParams={{ ime: "Marko", prezime: "Jerkić", godine: 22 }}
+        >
           Na igrač marko ajde
-        </routes.lastNameId.Link>
+        </routes.plyersCountry.Link>
         <button className="bg-red-300" onClick={() => toPlayer()}>
           Idemo na igrač stipe iz hrv
         </button>

@@ -84,15 +84,16 @@ export type Link<
   Catchall extends ZodTypeAny = ZodTypeAny,
   Output = objectOutputType<TValidType, Catchall>
 > = {
-  Link: (props: {
+  Link: (
     routeParams: RouteParamsWithOptionalQueryParams<
       TRoute,
       TValidType,
       Catchall,
       Output
-    >;
-    children?: ComponentChildren;
-  }) => JSXInternal.Element;
+    > & {
+      children?: ComponentChildren;
+    }
+  ) => JSXInternal.Element;
 };
 
 type TAsyncUtil = { isAsync: boolean };
