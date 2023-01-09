@@ -2,21 +2,12 @@
   "extends": "tsconfig/preact-library.json",
   "compilerOptions": {
     "declaration": true,
-    "emitDeclarationOnly": true,
-    "outDir": "dist",
-    "baseUrl": ".",
-    "paths": {
-      "*": [
-        "src/*"
-      ]
-    }
+    "esModuleInterop": true,
+    "noEmit": false,
+    "target": "es6",
+    "module": "es6",
+    "moduleResolution": "node",
+    "outDir": "dist"
   },
-  "include": [
-    "src"
-  ],
-  "exclude": [
-    "dist",
-    "build",
-    "node_modules"
-  ],
+  "include": ["src"],
 }
