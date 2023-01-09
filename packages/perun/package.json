@@ -2,7 +2,7 @@
   "name": "perun",
   "description": "Simple 100% typesafe router for Preact using Preact signals and Zod",
   "private": false,
-  "version": "0.1.4",
+  "version": "1.0.0",
   "license": "MIT",
   "main": "dist/index.js",
   "module": "dist/index.js",
