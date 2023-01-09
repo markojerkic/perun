@@ -2,8 +2,7 @@ import {
   createAsyncRoute,
   createRoute,
   createRouter,
-  TRouteCreator,
-} from "perun/src";
+} from "perun";
 import { useCallback } from "preact/hooks";
 import { z } from "zod";
 
