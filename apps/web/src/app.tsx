@@ -24,7 +24,7 @@ const TestComponent2 = ({
     | {
         ime: string;
         prezime?: string;
-        godine: string;
+        godine: number;
       }
     | undefined;
 }) => {
@@ -48,6 +48,11 @@ const TestComponent2 = ({
 export const routes = {
   plyersCountry: createRoute({
     routePattern: "/players/[country]/[playername]",
+    searchParamsValidator: z.object({
+      ime: z.string(),
+      prezime: z.string().optional(),
+      godine: z.number().min(20).max(40).optional().default(40),
+    }),
     renderComponent: (props) => (
       <TestComponent2
         country={props.country}
@@ -55,11 +60,6 @@ export const routes = {
         queryParams={props.queryParams}
       />
     ),
-    searchParamsValidator: z.object({
-      ime: z.string(),
-      prezime: z.string().optional(),
-      godine: z.string(),
-    }),
   }),
 
   lastNameId: createRoute({

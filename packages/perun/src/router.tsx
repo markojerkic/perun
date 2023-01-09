@@ -315,16 +315,30 @@ export const createRoute = <
   };
 };
 
+const strOrNum = (s: string) => {
+  let n = Number(s);
+  if (isNaN(n)) {
+    return s;
+  }
+  return n;
+};
+
 const parseWindowQueryParams = () => {
-  const params = new Map<string, string | string[]>();
+  const params = new Map<string, string | (string | number)[] | number>();
   const entriesIterator = new URLSearchParams(window.location.search).entries();
   let entry = entriesIterator.next();
   while (!entry.done) {
     let values = params.get(entry.value[0]);
+    const newEntry = strOrNum(entry.value[1]);
+
     if (!values) {
-      values = entry.value[1];
+      values = newEntry;
     } else {
-      values = [...values, entry.value[1]];
+      if (Array.isArray(values)) {
+        values = [...values, newEntry];
+      } else {
+        values = [values, newEntry];
+      }
     }
     params.set(entry.value[0], values);
     entry = entriesIterator.next();
@@ -349,10 +363,7 @@ type Router = {
   routes: { [routeName: string]: TRouteCreator | any };
 };
 
-export const Router: FunctionComponent<Router> = ({
-  routes,
-  children
-}) => {
+export const Router: FunctionComponent<Router> = ({ routes, children }) => {
   const sortedRoutes = useMemo(
     () =>
       Object.keys(routes)
@@ -406,14 +417,27 @@ export const Router: FunctionComponent<Router> = ({
     return <>{children}</>;
   }
 
-  if (
-    currentQueryParams.value &&
-    !Object.is(currentQueryParams, {}) &&
-    match.searchParamsValidator &&
-    !(match.searchParamsValidator as ZodObject<any>).safeParse(
+  const validatedSearchParams = useMemo(() => {
+    const is =
+      currentQueryParams.value &&
+      !Object.is(currentQueryParams.value, {}) &&
+      match.searchParamsValidator;
+    if (!is) {
+      return { params: undefined, success: false };
+    }
+
+    const params = (match.searchParamsValidator as ZodObject<any>).safeParse(
       currentQueryParams.value
-    ).success
-  ) {
+    );
+
+    return {
+      success: params.success,
+      // @ts-ignore
+      params: params.data,
+    };
+  }, [currentQueryParams.value, match]);
+
+  if (!validatedSearchParams.success) {
     return (
       <div>
         Query params are not valid: {JSON.stringify(currentQueryParams.value)}
@@ -421,12 +445,9 @@ export const Router: FunctionComponent<Router> = ({
     );
   }
 
-  // FIXME: Ts server goes crazy if directly passed
-  const matchedProps = match.match; //useMemo(() => match.match, [match.match]);
-
   return (
     <RouteRenderer
-      props={matchedProps}
+      props={{...match.match, queryParams: validatedSearchParams.params}}
       isAsync={match.isAsync}
       Renderer={match.renderComponent}
     />
