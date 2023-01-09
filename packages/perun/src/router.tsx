@@ -336,25 +336,22 @@ const parseWindowQueryParams = () => {
 const currentRoute = signal(window.location.pathname);
 const currentQueryParams = signal(parseWindowQueryParams());
 
-type RouteCreator<
-  TRoute extends string
-  //TValidType extends ZodRawShape,
-  //UnknownKeys extends UnknownKeysParam = "strip",
-  //Catchall extends ZodTypeAny = ZodTypeAny,
-  //Output = objectOutputType<TValidType, Catchall>
-> = ReturnType<typeof createRoute<TRoute, any, any, any, any, any>>;
+type RouteCreator<TRoute extends string> = ReturnType<
+  typeof createRoute<TRoute, any, any, any, any, any>
+>;
 type AsyncRouteCreator<TRoute extends string> = ReturnType<
   typeof createAsyncRoute<TRoute, any, any, any, any, any>
 >;
 
 export type TRouteCreator = RouteCreator<any> | AsyncRouteCreator<any>;
 
-export const useRouter = ({
-  routes,
-  noRoutesMatch,
-}: {
+type Router = {
   routes: { [routeName: string]: TRouteCreator | any };
-  noRoutesMatch: FunctionComponent;
+};
+
+export const Router: FunctionComponent<Router> = ({
+  routes,
+  children
 }) => {
   const sortedRoutes = useMemo(
     () =>
@@ -374,7 +371,7 @@ export const useRouter = ({
           }
           return -1;
         }),
-    [routes]
+    [currentRoute.value, currentQueryParams.value, routes]
   );
 
   const updateCurrentLocation = useCallback(() => {
@@ -384,7 +381,7 @@ export const useRouter = ({
   useEffect(() => {
     window.addEventListener("popstate", updateCurrentLocation);
     return () => window.removeEventListener("popstate", updateCurrentLocation);
-  }, [updateCurrentLocation]);
+  }, [updateCurrentLocation, currentRoute.value]);
 
   const match = useMemo(
     () =>
@@ -402,11 +399,11 @@ export const useRouter = ({
         .find((match) => {
           return !!match && !!match.match;
         }),
-    [sortedRoutes]
+    [sortedRoutes, matches, currentQueryParams.value, currentRoute.value]
   );
 
   if (!match || !match?.match) {
-    return { Router: noRoutesMatch, routes };
+    return <>{children}</>;
   }
 
   if (
@@ -417,32 +414,26 @@ export const useRouter = ({
       currentQueryParams.value
     ).success
   ) {
-    return {
-      Router: () => (
-        <div>
-          Query params are not valid: {JSON.stringify(currentQueryParams.value)}
-        </div>
-      ),
-      routes,
-    };
+    return (
+      <div>
+        Query params are not valid: {JSON.stringify(currentQueryParams.value)}
+      </div>
+    );
   }
 
   // FIXME: Ts server goes crazy if directly passed
   const matchedProps = match.match; //useMemo(() => match.match, [match.match]);
 
-  return {
-    Router: () => (
-      <Router
-        props={matchedProps}
-        isAsync={match.isAsync}
-        Renderer={match.renderComponent}
-      />
-    ),
-    routes,
-  };
+  return (
+    <RouteRenderer
+      props={matchedProps}
+      isAsync={match.isAsync}
+      Renderer={match.renderComponent}
+    />
+  );
 };
 
-const Router = <T,>({
+const RouteRenderer = <T,>({
   props,
   Renderer,
   isAsync,

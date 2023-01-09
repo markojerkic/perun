@@ -1,4 +1,4 @@
-import { createAsyncRoute, createRoute, useRouter } from "perun";
+import { createAsyncRoute, createRoute, Router} from "perun/src";
 import { useCallback } from "preact/hooks";
 import { z } from "zod";
 
@@ -85,10 +85,6 @@ const NoRoutesMatch = () => {
 };
 
 export const App = () => {
-  const router = useRouter({
-    routes,
-    noRoutesMatch: NoRoutesMatch,
-  });
 
   const toPersonWithId = useCallback(() => {
     routes.lastNameId.routeTo({ id: "marko", lastname: "jerkic" });
@@ -130,7 +126,9 @@ export const App = () => {
           Idemo na async rutu
         </button>
       </div>
-      <router.Router />
+      <Router routes={routes} >
+        <NoRoutesMatch />
+      </Router>
     </>
   );
 };
