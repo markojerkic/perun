@@ -1,8 +1,4 @@
-import {
-  createAsyncRoute,
-  createRoute,
-  createRouter,
-} from "perun";
+import { createAsyncRoute, createRoute, Router} from "perun/src";
 import { useCallback } from "preact/hooks";
 import { z } from "zod";
 
@@ -28,6 +24,7 @@ const TestComponent2 = ({
     | {
         ime: string;
         prezime?: string;
+        godine: number;
       }
     | undefined;
 }) => {
@@ -51,6 +48,11 @@ const TestComponent2 = ({
 export const routes = {
   plyersCountry: createRoute({
     routePattern: "/players/[country]/[playername]",
+    searchParamsValidator: z.object({
+      ime: z.string(),
+      prezime: z.string().optional(),
+      godine: z.number().min(20).max(40).optional().default(40),
+    }),
     renderComponent: (props) => (
       <TestComponent2
         country={props.country}
@@ -58,10 +60,6 @@ export const routes = {
         queryParams={props.queryParams}
       />
     ),
-    searchParamsValidator: z.object({
-      ime: z.string(),
-      prezime: z.string().optional(),
-    }),
   }),
 
   lastNameId: createRoute({
@@ -87,10 +85,6 @@ const NoRoutesMatch = () => {
 };
 
 export const App = () => {
-  const router = createRouter({
-    routes,
-    noRoutesMatch: NoRoutesMatch,
-  });
 
   const toPersonWithId = useCallback(() => {
     routes.lastNameId.routeTo({ id: "marko", lastname: "jerkic" });
@@ -104,7 +98,7 @@ export const App = () => {
     routes.plyersCountry.routeTo({
       playername: "stipe",
       country: "hrv",
-      queryParams: { ime: "marko" },
+      queryParams: { ime: "marko", godine: '22' },
     });
   }, []);
 
@@ -132,7 +126,9 @@ export const App = () => {
           Idemo na async rutu
         </button>
       </div>
-      <router.Router />
+      <Router routes={routes} >
+        <NoRoutesMatch />
+      </Router>
     </>
   );
 };
