@@ -5,6 +5,7 @@
   "version": "0.1.2",
   "license": "MIT",
   "main": "dist/index.js",
+  "module": "dist/index.js",
   "author": {
     "name": "Marko Jerkić",
     "email": "markojerkic266@gmail.com",
