@@ -8,16 +8,17 @@ import {
   ZodRawShape,
   ZodTypeAny,
 } from "zod";
+import { ComponentChildren } from "preact";
 
 type IsParameter<Part> = Part extends `[${infer ParamName}]`
   ? ParamName
   : never;
 
-type FilterOutOptional<TPart extends string> = TPart extends `${infer TName}?`
+type FilterOutOptional<TPart extends string> = TPart extends `${infer _TName}?`
   ? never
   : TPart;
 
-type FilterInOptional<TPart extends string> = TPart extends `${infer TName}?`
+type FilterInOptional<TPart extends string> = TPart extends `${infer _TName}?`
   ? TPart
   : never;
 
@@ -25,9 +26,7 @@ type FilteredParts<Path> = Path extends `${infer PartA}/${infer PartB}`
   ? IsParameter<PartA> | FilteredParts<PartB>
   : IsParameter<Path>;
 type DefaultType = string;
-type ParamValue<Key> = Key extends `${infer Anything}?`
-  ? DefaultType | null
-  : DefaultType;
+
 type RemoveOptionalTag<Key> = Key extends `${infer Name}?` ? Name : Key;
 
 type NonOptionalParts<Path> = {
@@ -108,6 +107,17 @@ export type Route<
   Input = objectInputType<TValidType, Catchall>
 > = RouteOptions<TRoute, TValidType, UnknownKeys, Catchall, Output, Input> & {
   routeTo: (routeParams: RouteParams<TRoute>) => void;
+  Link: (
+    props: RouteParamsWithOptionalQueryParams<
+      TRoute,
+      TValidType,
+      UnknownKeys,
+      Catchall,
+      Output
+    > & {
+      children?: ComponentChildren;
+    }
+  ) => JSXInternal.Element;
 } & TAsyncUtil;
 
 export type AsyncRouteParams<TPath extends string> = NonOptionalParts<TPath> &
@@ -163,4 +173,15 @@ export type AsyncRoute<
   Input
 > & {
   routeTo: (routeParams: AsyncRouteParams<TAsyncRoute>) => void;
+  Link: (
+    props: RouteParamsWithOptionalQueryParams<
+      TAsyncRoute,
+      TValidType,
+      UnknownKeys,
+      Catchall,
+      Output
+    > & {
+      children?: ComponentChildren;
+    }
+  ) => JSXInternal.Element;
 } & TAsyncUtil;

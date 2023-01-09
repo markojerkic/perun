@@ -97,8 +97,7 @@ export const App = () => {
   const toPlayer = useCallback(() => {
     routes.plyersCountry.routeTo({
       playername: "stipe",
-      country: "hrv",
-      queryParams: { ime: "marko", godine: '22' },
+      country: "hrv"
     });
   }, []);
 
@@ -110,7 +109,7 @@ export const App = () => {
     <>
       <p>Bok, ovo je moj router :)</p>
       <div class="flex space-x-4 my-4">
-        <routes.lastNameId.Link routeParams={{ lastname: "marko" }}>
+        <routes.lastNameId.Link lastname="jerkić" queryParams={{ime: 'marko', godine: 22}}>
           Na igrač marko ajde
         </routes.lastNameId.Link>
         <button className="bg-red-300" onClick={() => toPlayer()}>

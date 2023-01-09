@@ -14,95 +14,22 @@ import {
   ZodTypeAny,
 } from "zod";
 import {
+  AsyncRoute,
   AsyncRouteOptions,
   AsyncRouteParamsWithOptionalQueryParams,
+  Route,
   RouteOptions,
   RouteParamsWithOptionalQueryParams,
 } from "./types";
+import {
+  changePath,
+  matches,
+  parseWindowQueryParams,
+  routeObjectToPath,
+  routeTo,
+} from "./util";
 
-const splitRoute = (route: string) =>
-  route.split("/").filter((part) => !!part && part !== "");
-
-const createPathParts = (route: string) => {
-  const pathParts = splitRoute(route).map((pathPart) => ({
-    name: pathPart.replace("[", "").replace("]", "").replace("?", ""),
-    isVariable: pathPart.includes("[") && pathPart.includes("]"),
-    isOptional: pathPart.includes("?"),
-  }));
-  return pathParts;
-};
-
-const matches = <
-  TRoute extends string,
-  TValidType extends ZodRawShape,
-  UnknownKeys extends UnknownKeysParam = "strip",
-  Catchall extends ZodTypeAny = ZodTypeAny,
-  Output = objectOutputType<TValidType, Catchall>
->({
-  currentRoute: route,
-  routerPattern: testRoute,
-}: {
-  currentRoute: string;
-  routerPattern: TRoute;
-}):
-  | RouteParamsWithOptionalQueryParams<
-      TRoute,
-      TValidType,
-      UnknownKeys,
-      Catchall,
-      Output
-    >
-  | undefined => {
-  const routeParts = createPathParts(testRoute);
-
-  const currentRouteParts = splitRoute(route);
-  if (currentRouteParts.length > routeParts.length) {
-    return undefined;
-  }
-  let pathParams: { [key: string]: string | undefined } = {};
-  let routePart = routeParts.shift();
-  while (routePart) {
-    if (currentRouteParts.length <= 0 && !routePart.isOptional) {
-      return undefined;
-    }
-    let currentRoutePart = currentRouteParts.shift();
-    if (!currentRoutePart && !routePart.isOptional) {
-      return undefined;
-    }
-    if (!routePart.isVariable) {
-      if (currentRoutePart !== routePart.name) {
-        return undefined;
-      }
-    } else if (routePart.isVariable) {
-      if (routePart.isOptional) {
-        if (
-          routeParts.find((rp) => !rp.isVariable && !rp.isOptional)?.name ===
-          currentRoutePart
-        ) {
-          pathParams[routePart.name] = undefined;
-          routePart = routeParts.shift();
-        } else {
-          pathParams[routePart.name] = currentRoutePart;
-        }
-      } else {
-        pathParams[routePart.name] = currentRoutePart;
-      }
-    }
-    routePart = routeParts.shift();
-  }
-  return {
-    ...pathParams,
-    queryParams: currentQueryParams.value,
-  } as RouteParamsWithOptionalQueryParams<
-    TRoute,
-    TValidType,
-    UnknownKeys,
-    Catchall,
-    Output
-  >;
-};
-
-const routeTo = <
+const Link = <
   TRoute extends string,
   TValidType extends ZodRawShape,
   UnknownKeys extends UnknownKeysParam = "strip",
@@ -111,77 +38,37 @@ const routeTo = <
 >({
   routePattern,
   routeParams,
+  children,
 }: {
   routePattern: TRoute;
-  routeParams: AsyncRouteParamsWithOptionalQueryParams<
+  routeParams: RouteParamsWithOptionalQueryParams<
     TRoute,
     TValidType,
     UnknownKeys,
     Catchall,
     Output
   >;
+  children?: ComponentChildren;
 }) => {
-  const pathWithoutLeadingSlash = routePattern
-    .split("/")
-    .filter((part) => part !== "")
-    .map((part) => {
-      if (part.startsWith("[") && part.endsWith("]")) {
-        part = part.replace("[", "").replace("]", "").replace("?", "");
-        const partCast = part as TRoute;
-
-        return (routeParams as any)[partCast];
-      }
-      return part;
-    })
-    .join("/");
-  return {
-    path: pathWithoutLeadingSlash.startsWith("/")
-      ? pathWithoutLeadingSlash
-      : `/${pathWithoutLeadingSlash}`,
-    queryParams: routeParams.queryParams,
-  };
-};
-
-const routeObjectToPath = ({
-  path,
-  queryParams,
-}: {
-  path: string;
-  queryParams: any;
-}) => {
-  let queryParamsString;
-  if (queryParams) {
-    queryParamsString = Object.keys(queryParams)
-      .filter((key) => Object.hasOwn(queryParams, key))
-      // @ts-ignore
-      .map((key) => ({ key, value: queryParams[key] }))
-      .map((entry) => {
-        if (Array.isArray(entry.value)) {
-          return entry.value.map((value) => `${entry.key}=${value}`).join("&");
-        }
-        return `${entry.key}=${entry.value}`;
-      })
-      .join("&");
-  }
-  return `${path}${
-    queryParamsString && queryParamsString !== "" ? `?${queryParamsString}` : ""
-  }`;
-};
-
-const changePath = ({
-  path,
-  queryParams,
-}: {
-  path: string;
-  queryParams: any;
-}) => {
-  window.history.pushState(
-    { manual: true },
-    "",
-    routeObjectToPath({ path, queryParams })
+  const routeObject = useMemo(
+    () => routeTo({ routePattern, routeParams }),
+    [routeParams]
   );
-  currentRoute.value = path;
-  currentQueryParams.value = queryParams;
+
+  const href = useMemo(() => routeObjectToPath(routeObject), [routeObject]);
+  const handleClick = useCallback(
+    (e: Event) => {
+      e.preventDefault();
+      changePath(routeObject);
+    },
+    [routeObject]
+  );
+
+  return (
+    <a href={href} onClick={handleClick}>
+      <div>{children}</div>
+    </a>
+  );
 };
 
 export const createAsyncRoute = <
@@ -202,45 +89,29 @@ export const createAsyncRoute = <
   Catchall,
   Output,
   Input
->) => {
+>): AsyncRoute<TRoute, TValidType, UnknownKeys, Catchall, Output, Input> => {
   return {
     isAsync: true,
     renderComponent,
     routePattern,
     searchParamsValidator,
-    Link: ({
-      routeParams,
-      children,
-    }: {
-      routeParams: RouteParamsWithOptionalQueryParams<
+    Link: (
+      props: RouteParamsWithOptionalQueryParams<
         TRoute,
         TValidType,
         UnknownKeys,
         Catchall,
         Output
-      >;
-      children?: ComponentChildren;
-    }) => {
-      const routeObject = useMemo(
-        () => routeTo({ routePattern, routeParams }),
-        [routeParams]
-      );
-
-      const href = useMemo(() => routeObjectToPath(routeObject), [routeObject]);
-      const handleClick = useCallback(
-        (e: Event) => {
-          e.preventDefault();
-          changePath(routeObject);
-        },
-        [routeObject]
-      );
-
-      return (
-        <a href={href} onClick={handleClick}>
-          <div>{children}</div>
-        </a>
-      );
-    },
+      > & {
+        children?: ComponentChildren;
+      }
+    ) => (
+      <Link
+        children={props.children}
+        routePattern={routePattern}
+        routeParams={{ ...props, children: undefined }}
+      />
+    ),
     routeTo: (
       routeParams: AsyncRouteParamsWithOptionalQueryParams<
         TRoute,
@@ -253,6 +124,10 @@ export const createAsyncRoute = <
   };
 };
 
+/*
+
+* */
+
 export const createRoute = <
   TRoute extends string,
   TValidType extends ZodRawShape,
@@ -264,45 +139,36 @@ export const createRoute = <
   searchParamsValidator,
   routePattern,
   renderComponent,
-}: RouteOptions<TRoute, TValidType, UnknownKeys, Catchall, Output, Input>) => {
+}: RouteOptions<
+  TRoute,
+  TValidType,
+  UnknownKeys,
+  Catchall,
+  Output,
+  Input
+>): Route<TRoute, TValidType, UnknownKeys, Catchall, Output, Input> => {
   return {
     isAsync: false,
     renderComponent,
     routePattern,
-    Link: ({
-      routeParams,
-      children,
-    }: {
-      routeParams: RouteParamsWithOptionalQueryParams<
+    searchParamsValidator,
+    Link: (
+      props: RouteParamsWithOptionalQueryParams<
         TRoute,
         TValidType,
         UnknownKeys,
         Catchall,
         Output
-      >;
-      children?: ComponentChildren;
-    }) => {
-      const routeObject = useMemo(
-        () => routeTo({ routePattern, routeParams }),
-        [routeParams]
-      );
-
-      const href = useMemo(() => routeObjectToPath(routeObject), [routeObject]);
-      const handleClick = useCallback(
-        (e: Event) => {
-          e.preventDefault();
-          changePath(routeObject);
-        },
-        [routeObject]
-      );
-
-      return (
-        <a href={href} onClick={handleClick}>
-          <div>{children}</div>
-        </a>
-      );
-    },
-    searchParamsValidator,
+      > & {
+        children?: ComponentChildren;
+      }
+    ) => (
+      <Link
+        children={props.children}
+        routePattern={routePattern}
+        routeParams={{ ...props, children: undefined }}
+      />
+    ),
     routeTo: (
       routeParams: RouteParamsWithOptionalQueryParams<
         TRoute,
@@ -315,40 +181,8 @@ export const createRoute = <
   };
 };
 
-const strOrNum = (s: string) => {
-  let n = Number(s);
-  if (isNaN(n)) {
-    return s;
-  }
-  return n;
-};
-
-const parseWindowQueryParams = () => {
-  const params = new Map<string, string | (string | number)[] | number>();
-  const entriesIterator = new URLSearchParams(window.location.search).entries();
-  let entry = entriesIterator.next();
-  while (!entry.done) {
-    let values = params.get(entry.value[0]);
-    const newEntry = strOrNum(entry.value[1]);
-
-    if (!values) {
-      values = newEntry;
-    } else {
-      if (Array.isArray(values)) {
-        values = [...values, newEntry];
-      } else {
-        values = [values, newEntry];
-      }
-    }
-    params.set(entry.value[0], values);
-    entry = entriesIterator.next();
-  }
-
-  return Object.fromEntries(params.entries());
-};
-
-const currentRoute = signal(window.location.pathname);
-const currentQueryParams = signal(parseWindowQueryParams());
+export const currentRoute = signal(window.location.pathname);
+export const currentQueryParams = signal(parseWindowQueryParams());
 
 type RouteCreator<TRoute extends string> = ReturnType<
   typeof createRoute<TRoute, any, any, any, any, any>
@@ -447,7 +281,7 @@ export const Router: FunctionComponent<Router> = ({ routes, children }) => {
 
   return (
     <RouteRenderer
-      props={{...match.match, queryParams: validatedSearchParams.params}}
+      props={{ ...match.match, queryParams: validatedSearchParams.params }}
       isAsync={match.isAsync}
       Renderer={match.renderComponent}
     />
