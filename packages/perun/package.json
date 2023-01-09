@@ -2,7 +2,7 @@
   "name": "perun",
   "description": "Simple 100% typesafe router for Preact using Preact signals and Zod",
   "private": false,
-  "version": "0.1.3",
+  "version": "0.1.4",
   "license": "MIT",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -13,7 +13,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/markojerkic/perun+git",
+    "url": "git+https://github.com/markojerkic/perun.git",
     "directory": "packages/perun"
   },
   "scripts": {
@@ -31,10 +31,10 @@
   "files": [
     "dist"
   ],
-  "dependencies": {
-    "@preact/signals": "^1.1.2",
-    "preact": "^10.11.3",
-    "zod": "^3.20.2"
+  "peerDependencies": {
+    "@preact/signals": ">=1.1",
+    "preact": ">=10.11",
+    "zod": ">=3.20"
   },
   "devDependencies": {
     "@types/node": "^18.11.18"
