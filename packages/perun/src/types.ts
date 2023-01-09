@@ -1,4 +1,3 @@
-import { FunctionComponent } from "preact";
 import { JSXInternal } from "preact/src/jsx";
 import {
   objectInputType,
@@ -8,16 +7,17 @@ import {
   ZodRawShape,
   ZodTypeAny,
 } from "zod";
+import { ComponentChildren } from "preact";
 
 type IsParameter<Part> = Part extends `[${infer ParamName}]`
   ? ParamName
   : never;
 
-type FilterOutOptional<TPart extends string> = TPart extends `${infer TName}?`
+type FilterOutOptional<TPart extends string> = TPart extends `${infer _TName}?`
   ? never
   : TPart;
 
-type FilterInOptional<TPart extends string> = TPart extends `${infer TName}?`
+type FilterInOptional<TPart extends string> = TPart extends `${infer _TName}?`
   ? TPart
   : never;
 
@@ -25,9 +25,7 @@ type FilteredParts<Path> = Path extends `${infer PartA}/${infer PartB}`
   ? IsParameter<PartA> | FilteredParts<PartB>
   : IsParameter<Path>;
 type DefaultType = string;
-type ParamValue<Key> = Key extends `${infer Anything}?`
-  ? DefaultType | null
-  : DefaultType;
+
 type RemoveOptionalTag<Key> = Key extends `${infer Name}?` ? Name : Key;
 
 type NonOptionalParts<Path> = {
@@ -48,28 +46,11 @@ export type RouteParams<TPath extends string> = NonOptionalParts<TPath> &
 export type RouteParamsWithOptionalQueryParams<
   TRoute extends string,
   TValidType extends ZodRawShape,
-  UnknownKeys extends UnknownKeysParam = "strip",
   Catchall extends ZodTypeAny = ZodTypeAny,
   Output = objectOutputType<TValidType, Catchall>
 > = RouteParams<TRoute> & {
-  queryParams?: Output extends ZodTypeAny ? never : Output;
+  queryParams?: Output;
 };
-
-export type Link<
-  TRoute extends string,
-  TValidType extends ZodRawShape,
-  UnknownKeys extends UnknownKeysParam = "strip",
-  Catchall extends ZodTypeAny = ZodTypeAny,
-  Output = objectOutputType<TValidType, Catchall>
-> = FunctionComponent<{
-  props: RouteParamsWithOptionalQueryParams<
-    TRoute,
-    TValidType,
-    UnknownKeys,
-    Catchall,
-    Output
-  >;
-}>;
 
 export type RouteOptions<
   TRoute extends string,
@@ -84,7 +65,6 @@ export type RouteOptions<
     props: RouteParamsWithOptionalQueryParams<
       TRoute,
       TValidType,
-      UnknownKeys,
       Catchall,
       Output
     >
@@ -98,6 +78,24 @@ export type RouteOptions<
   >;
 };
 
+export type Link<
+  TRoute extends string,
+  TValidType extends ZodRawShape,
+  Catchall extends ZodTypeAny = ZodTypeAny,
+  Output = objectOutputType<TValidType, Catchall>
+> = {
+  Link: (
+    routeParams: RouteParamsWithOptionalQueryParams<
+      TRoute,
+      TValidType,
+      Catchall,
+      Output
+    > & {
+      children?: ComponentChildren;
+    }
+  ) => JSXInternal.Element;
+};
+
 type TAsyncUtil = { isAsync: boolean };
 export type Route<
   TRoute extends string,
@@ -107,15 +105,22 @@ export type Route<
   Output = objectOutputType<TValidType, Catchall>,
   Input = objectInputType<TValidType, Catchall>
 > = RouteOptions<TRoute, TValidType, UnknownKeys, Catchall, Output, Input> & {
-  routeTo: (routeParams: RouteParams<TRoute>) => void;
-} & TAsyncUtil;
+  routeTo: (
+    routeParams: RouteParamsWithOptionalQueryParams<
+      TRoute,
+      TValidType,
+      Catchall,
+      Output
+    >
+  ) => void;
+} & TAsyncUtil &
+  Link<TRoute, TValidType, Catchall, Output>;
 
 export type AsyncRouteParams<TPath extends string> = NonOptionalParts<TPath> &
   Partial<OptionalParts<TPath>>;
 export type AsyncRouteParamsWithOptionalQueryParams<
   TRoute extends string,
   TValidType extends ZodRawShape,
-  UnknownKeys extends UnknownKeysParam = "strip",
   Catchall extends ZodTypeAny = ZodTypeAny,
   Output = objectOutputType<TValidType, Catchall>
 > = AsyncRouteParams<TRoute> & { queryParams?: Output };
@@ -133,7 +138,6 @@ export type AsyncRouteOptions<
     props: RouteParamsWithOptionalQueryParams<
       TRoute,
       TValidType,
-      UnknownKeys,
       Catchall,
       Output
     >
@@ -163,4 +167,5 @@ export type AsyncRoute<
   Input
 > & {
   routeTo: (routeParams: AsyncRouteParams<TAsyncRoute>) => void;
-} & TAsyncUtil;
+} & TAsyncUtil &
+  Link<TAsyncRoute, TValidType, Catchall, Output>;

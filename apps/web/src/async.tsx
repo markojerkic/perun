@@ -1,7 +1,6 @@
 import { routes } from "./app";
 
 export const AsyncComponent = (props: { route: string }) => {
-
   return (
     <>
       <div className="bg-fuchsia-200">

@@ -1,4 +1,4 @@
-import { createAsyncRoute, createRoute, Router} from "perun/src";
+import { createAsyncRoute, createRoute, Router } from "perun/src";
 import { useCallback } from "preact/hooks";
 import { z } from "zod";
 
@@ -85,7 +85,6 @@ const NoRoutesMatch = () => {
 };
 
 export const App = () => {
-
   const toPersonWithId = useCallback(() => {
     routes.lastNameId.routeTo({ id: "marko", lastname: "jerkic" });
   }, []);
@@ -98,7 +97,11 @@ export const App = () => {
     routes.plyersCountry.routeTo({
       playername: "stipe",
       country: "hrv",
-      queryParams: { ime: "marko", godine: '22' },
+      queryParams: {
+        godine: 22,
+        ime: "Stipe",
+        prezime: "Stipić",
+      },
     });
   }, []);
 
@@ -110,9 +113,13 @@ export const App = () => {
     <>
       <p>Bok, ovo je moj router :)</p>
       <div class="flex space-x-4 my-4">
-        <routes.lastNameId.Link routeParams={{ lastname: "marko" }}>
+        <routes.plyersCountry.Link
+          playername="Marko"
+          country="Hrvatska"
+          queryParams={{ ime: "Marko", prezime: "Jerkić", godine: 22 }}
+        >
           Na igrač marko ajde
-        </routes.lastNameId.Link>
+        </routes.plyersCountry.Link>
         <button className="bg-red-300" onClick={() => toPlayer()}>
           Idemo na igrač stipe iz hrv
         </button>
@@ -126,7 +133,7 @@ export const App = () => {
           Idemo na async rutu
         </button>
       </div>
-      <Router routes={routes} >
+      <Router routes={routes}>
         <NoRoutesMatch />
       </Router>
     </>
