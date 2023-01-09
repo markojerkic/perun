@@ -105,7 +105,14 @@ export type Route<
   Output = objectOutputType<TValidType, Catchall>,
   Input = objectInputType<TValidType, Catchall>
 > = RouteOptions<TRoute, TValidType, UnknownKeys, Catchall, Output, Input> & {
-  routeTo: (routeParams: RouteParams<TRoute>) => void;
+  routeTo: (
+    routeParams: RouteParamsWithOptionalQueryParams<
+      TRoute,
+      TValidType,
+      Catchall,
+      Output
+    >
+  ) => void;
 } & TAsyncUtil &
   Link<TRoute, TValidType, Catchall, Output>;
 

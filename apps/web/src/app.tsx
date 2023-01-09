@@ -97,6 +97,11 @@ export const App = () => {
     routes.plyersCountry.routeTo({
       playername: "stipe",
       country: "hrv",
+      queryParams: {
+        godine: 22,
+        ime: "Stipe",
+        prezime: "Stipić",
+      },
     });
   }, []);
 

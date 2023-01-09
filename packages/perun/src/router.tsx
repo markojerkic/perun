@@ -214,10 +214,8 @@ export const Router: FunctionComponent<Router> = ({ routes, children }) => {
   }
 
   const validatedSearchParams = useMemo(() => {
-    const is =
-      currentQueryParams.value &&
-      !Object.is(currentQueryParams.value, {}) &&
-      match.searchParamsValidator;
+    const is = !!currentQueryParams.value && !!match.searchParamsValidator;
+
     if (!is) {
       return { params: undefined, success: false };
     }
