@@ -1,4 +1,4 @@
-import { createAsyncRoute, createRoute, Router} from "perun/src";
+import { createAsyncRoute, createRoute, Router } from "perun/src";
 import { useCallback } from "preact/hooks";
 import { z } from "zod";
 
@@ -85,7 +85,6 @@ const NoRoutesMatch = () => {
 };
 
 export const App = () => {
-
   const toPersonWithId = useCallback(() => {
     routes.lastNameId.routeTo({ id: "marko", lastname: "jerkic" });
   }, []);
@@ -97,7 +96,7 @@ export const App = () => {
   const toPlayer = useCallback(() => {
     routes.plyersCountry.routeTo({
       playername: "stipe",
-      country: "hrv"
+      country: "hrv",
     });
   }, []);
 
@@ -109,7 +108,7 @@ export const App = () => {
     <>
       <p>Bok, ovo je moj router :)</p>
       <div class="flex space-x-4 my-4">
-        <routes.lastNameId.Link lastname="jerkić" queryParams={{ime: 'marko', godine: 22}}>
+        <routes.lastNameId.Link routeParams={{ lastname: "jerkic" }}>
           Na igrač marko ajde
         </routes.lastNameId.Link>
         <button className="bg-red-300" onClick={() => toPlayer()}>
@@ -125,7 +124,7 @@ export const App = () => {
           Idemo na async rutu
         </button>
       </div>
-      <Router routes={routes} >
+      <Router routes={routes}>
         <NoRoutesMatch />
       </Router>
     </>

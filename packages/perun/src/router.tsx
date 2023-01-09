@@ -95,38 +95,17 @@ export const createAsyncRoute = <
     renderComponent,
     routePattern,
     searchParamsValidator,
-    Link: (
-      props: RouteParamsWithOptionalQueryParams<
-        TRoute,
-        TValidType,
-        UnknownKeys,
-        Catchall,
-        Output
-      > & {
-        children?: ComponentChildren;
-      }
-    ) => (
+    Link: ({ routeParams, children }) => (
       <Link
-        children={props.children}
+        children={children}
         routePattern={routePattern}
-        routeParams={{ ...props, children: undefined }}
+        routeParams={routeParams}
       />
     ),
-    routeTo: (
-      routeParams: AsyncRouteParamsWithOptionalQueryParams<
-        TRoute,
-        TValidType,
-        UnknownKeys,
-        Catchall,
-        Output
-      >
-    ) => changePath(routeTo({ routePattern, routeParams })),
+    routeTo: (routeParams) =>
+      changePath(routeTo({ routePattern, routeParams })),
   };
 };
-
-/*
-
-* */
 
 export const createRoute = <
   TRoute extends string,
@@ -152,32 +131,15 @@ export const createRoute = <
     renderComponent,
     routePattern,
     searchParamsValidator,
-    Link: (
-      props: RouteParamsWithOptionalQueryParams<
-        TRoute,
-        TValidType,
-        UnknownKeys,
-        Catchall,
-        Output
-      > & {
-        children?: ComponentChildren;
-      }
-    ) => (
+    Link: ({ routeParams, children }) => (
       <Link
-        children={props.children}
+        children={children}
         routePattern={routePattern}
-        routeParams={{ ...props, children: undefined }}
+        routeParams={routeParams}
       />
     ),
-    routeTo: (
-      routeParams: RouteParamsWithOptionalQueryParams<
-        TRoute,
-        TValidType,
-        UnknownKeys,
-        Catchall,
-        Output
-      >
-    ) => changePath(routeTo({ routePattern, routeParams })),
+    routeTo: (routeParams) =>
+      changePath(routeTo({ routePattern, routeParams })),
   };
 };
 

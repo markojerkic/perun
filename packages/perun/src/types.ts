@@ -1,4 +1,3 @@
-import { FunctionComponent } from "preact";
 import { JSXInternal } from "preact/src/jsx";
 import {
   objectInputType,
@@ -47,28 +46,11 @@ export type RouteParams<TPath extends string> = NonOptionalParts<TPath> &
 export type RouteParamsWithOptionalQueryParams<
   TRoute extends string,
   TValidType extends ZodRawShape,
-  UnknownKeys extends UnknownKeysParam = "strip",
   Catchall extends ZodTypeAny = ZodTypeAny,
   Output = objectOutputType<TValidType, Catchall>
 > = RouteParams<TRoute> & {
-  queryParams?: Output extends ZodTypeAny ? never : Output;
+  queryParams?: Output;
 };
-
-export type Link<
-  TRoute extends string,
-  TValidType extends ZodRawShape,
-  UnknownKeys extends UnknownKeysParam = "strip",
-  Catchall extends ZodTypeAny = ZodTypeAny,
-  Output = objectOutputType<TValidType, Catchall>
-> = FunctionComponent<{
-  props: RouteParamsWithOptionalQueryParams<
-    TRoute,
-    TValidType,
-    UnknownKeys,
-    Catchall,
-    Output
-  >;
-}>;
 
 export type RouteOptions<
   TRoute extends string,
@@ -83,7 +65,6 @@ export type RouteOptions<
     props: RouteParamsWithOptionalQueryParams<
       TRoute,
       TValidType,
-      UnknownKeys,
       Catchall,
       Output
     >
@@ -97,6 +78,23 @@ export type RouteOptions<
   >;
 };
 
+export type Link<
+  TRoute extends string,
+  TValidType extends ZodRawShape,
+  Catchall extends ZodTypeAny = ZodTypeAny,
+  Output = objectOutputType<TValidType, Catchall>
+> = {
+  Link: (props: {
+    routeParams: RouteParamsWithOptionalQueryParams<
+      TRoute,
+      TValidType,
+      Catchall,
+      Output
+    >;
+    children?: ComponentChildren;
+  }) => JSXInternal.Element;
+};
+
 type TAsyncUtil = { isAsync: boolean };
 export type Route<
   TRoute extends string,
@@ -107,25 +105,14 @@ export type Route<
   Input = objectInputType<TValidType, Catchall>
 > = RouteOptions<TRoute, TValidType, UnknownKeys, Catchall, Output, Input> & {
   routeTo: (routeParams: RouteParams<TRoute>) => void;
-  Link: (
-    props: RouteParamsWithOptionalQueryParams<
-      TRoute,
-      TValidType,
-      UnknownKeys,
-      Catchall,
-      Output
-    > & {
-      children?: ComponentChildren;
-    }
-  ) => JSXInternal.Element;
-} & TAsyncUtil;
+} & TAsyncUtil &
+  Link<TRoute, TValidType, Catchall, Output>;
 
 export type AsyncRouteParams<TPath extends string> = NonOptionalParts<TPath> &
   Partial<OptionalParts<TPath>>;
 export type AsyncRouteParamsWithOptionalQueryParams<
   TRoute extends string,
   TValidType extends ZodRawShape,
-  UnknownKeys extends UnknownKeysParam = "strip",
   Catchall extends ZodTypeAny = ZodTypeAny,
   Output = objectOutputType<TValidType, Catchall>
 > = AsyncRouteParams<TRoute> & { queryParams?: Output };
@@ -143,7 +130,6 @@ export type AsyncRouteOptions<
     props: RouteParamsWithOptionalQueryParams<
       TRoute,
       TValidType,
-      UnknownKeys,
       Catchall,
       Output
     >
@@ -173,15 +159,5 @@ export type AsyncRoute<
   Input
 > & {
   routeTo: (routeParams: AsyncRouteParams<TAsyncRoute>) => void;
-  Link: (
-    props: RouteParamsWithOptionalQueryParams<
-      TAsyncRoute,
-      TValidType,
-      UnknownKeys,
-      Catchall,
-      Output
-    > & {
-      children?: ComponentChildren;
-    }
-  ) => JSXInternal.Element;
-} & TAsyncUtil;
+} & TAsyncUtil &
+  Link<TAsyncRoute, TValidType, Catchall, Output>;
