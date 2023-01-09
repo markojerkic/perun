@@ -1,11 +1,14 @@
 import { signal } from "@preact/signals";
-import { ComponentChildren, FunctionComponent } from "preact";
+import {
+  ComponentChildren,
+  FunctionalComponent,
+  FunctionComponent,
+} from "preact";
 import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
 import {
   objectInputType,
   objectOutputType,
   UnknownKeysParam,
-  z,
   ZodObject,
   ZodRawShape,
   ZodTypeAny,
@@ -220,7 +223,7 @@ export const createAsyncRoute = <
     }) => {
       const routeObject = useMemo(
         () => routeTo({ routePattern, routeParams }),
-        [routeParams, routePattern]
+        [routeParams]
       );
 
       const href = useMemo(() => routeObjectToPath(routeObject), [routeObject]);
@@ -281,7 +284,7 @@ export const createRoute = <
     }) => {
       const routeObject = useMemo(
         () => routeTo({ routePattern, routeParams }),
-        [routeParams, routePattern]
+        [routeParams]
       );
 
       const href = useMemo(() => routeObjectToPath(routeObject), [routeObject]);
@@ -313,13 +316,13 @@ export const createRoute = <
 };
 
 const parseWindowQueryParams = () => {
-  const params = new Map<string, string[]>();
+  const params = new Map<string, string | string[]>();
   const entriesIterator = new URLSearchParams(window.location.search).entries();
   let entry = entriesIterator.next();
   while (!entry.done) {
     let values = params.get(entry.value[0]);
     if (!values) {
-      values = [entry.value[1]];
+      values = entry.value[1];
     } else {
       values = [...values, entry.value[1]];
     }
@@ -346,7 +349,7 @@ type AsyncRouteCreator<TRoute extends string> = ReturnType<
 
 export type TRouteCreator = RouteCreator<any> | AsyncRouteCreator<any>;
 
-export const createRouter = ({
+export const useRouter = ({
   routes,
   noRoutesMatch,
 }: {
@@ -371,7 +374,7 @@ export const createRouter = ({
           }
           return -1;
         }),
-    [currentRoute.value, currentQueryParams.value, routes]
+    [routes]
   );
 
   const updateCurrentLocation = useCallback(() => {
@@ -381,7 +384,7 @@ export const createRouter = ({
   useEffect(() => {
     window.addEventListener("popstate", updateCurrentLocation);
     return () => window.removeEventListener("popstate", updateCurrentLocation);
-  }, [currentRoute.value]);
+  }, [updateCurrentLocation]);
 
   const match = useMemo(
     () =>
@@ -399,7 +402,7 @@ export const createRouter = ({
         .find((match) => {
           return !!match && !!match.match;
         }),
-    [matches, currentQueryParams.value, currentRoute.value]
+    [sortedRoutes]
   );
 
   if (!match || !match?.match) {
@@ -414,31 +417,59 @@ export const createRouter = ({
       currentQueryParams.value
     ).success
   ) {
-    return { Router: () => <div>Query params are not valid</div>, routes };
+    return {
+      Router: () => (
+        <div>
+          Query params are not valid: {JSON.stringify(currentQueryParams.value)}
+        </div>
+      ),
+      routes,
+    };
   }
 
   // FIXME: Ts server goes crazy if directly passed
   const matchedProps = match.match; //useMemo(() => match.match, [match.match]);
 
   return {
-    Router: () => {
-      if (!match.isAsync) {
-        // @ts-ignore
-        return <>{match.renderComponent(matchedProps)}</>;
-      }
-      const [asyncComponent, setAsyncComponent] = useState();
-      useEffect(() => {
-        const load = async () => {
-          // @ts-ignore
-          setAsyncComponent(await match.renderComponent(matchedProps));
-        };
-        load();
-      }, []);
-      if (!asyncComponent) {
-        return <>Loading...</>;
-      }
-      return <>{asyncComponent}</>;
-    },
+    Router: () => (
+      <Router
+        props={matchedProps}
+        isAsync={match.isAsync}
+        Renderer={match.renderComponent}
+      />
+    ),
     routes,
   };
+};
+
+const Router = <T,>({
+  props,
+  Renderer,
+  isAsync,
+}: {
+  Renderer: (p: T) => Promise<FunctionComponent<T>> | FunctionalComponent<T>;
+  props: T;
+  isAsync: boolean;
+}) => {
+  const [AsyncComponent, setAsyncComponent] =
+    useState<FunctionalComponent<any>>();
+  useEffect(() => {
+    const load = async () => {
+      setAsyncComponent(await Renderer(props));
+    };
+    if (isAsync) {
+      load();
+    }
+  }, [Renderer, isAsync, props]);
+
+  if (!isAsync) {
+    // @ts-ignore
+    return <Renderer {...props} />;
+  }
+
+  if (!AsyncComponent) {
+    return <>Loading...</>;
+  }
+
+  return <AsyncComponent {...props} />;
 };

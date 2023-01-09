@@ -1,8 +1,4 @@
-import {
-  createAsyncRoute,
-  createRoute,
-  createRouter,
-} from "perun";
+import { createAsyncRoute, createRoute, useRouter } from "perun";
 import { useCallback } from "preact/hooks";
 import { z } from "zod";
 
@@ -28,6 +24,7 @@ const TestComponent2 = ({
     | {
         ime: string;
         prezime?: string;
+        godine: string;
       }
     | undefined;
 }) => {
@@ -61,6 +58,7 @@ export const routes = {
     searchParamsValidator: z.object({
       ime: z.string(),
       prezime: z.string().optional(),
+      godine: z.string(),
     }),
   }),
 
@@ -87,7 +85,7 @@ const NoRoutesMatch = () => {
 };
 
 export const App = () => {
-  const router = createRouter({
+  const router = useRouter({
     routes,
     noRoutesMatch: NoRoutesMatch,
   });
@@ -104,7 +102,7 @@ export const App = () => {
     routes.plyersCountry.routeTo({
       playername: "stipe",
       country: "hrv",
-      queryParams: { ime: "marko" },
+      queryParams: { ime: "marko", godine: '22' },
     });
   }, []);
 
