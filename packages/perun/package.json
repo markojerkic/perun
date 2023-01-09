@@ -2,7 +2,7 @@
   "name": "perun",
   "description": "Simple 100% typesafe router for Preact using Preact signals and Zod",
   "private": false,
-  "version": "1.0.0",
+  "version": "1.1.0",
   "license": "MIT",
   "main": "dist/index.js",
   "module": "dist/index.js",
@@ -17,7 +17,7 @@
     "directory": "packages/perun"
   },
   "scripts": {
-    "build": "tsc && cp package.json ../../README.md ./dist/",
+    "build": "tsc && cp package.json README.md ./dist/",
     "prebuild": "rm -rf dist && mkdir dist"
   },
   "keywords": [
@@ -30,7 +30,7 @@
   ],
   "files": [
     "dist",
-    ".../../README.md"
+    "README.md"
   ],
   "peerDependencies": {
     "@preact/signals": ">=1.1",
