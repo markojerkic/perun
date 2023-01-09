@@ -18,7 +18,7 @@
   },
   "scripts": {
     "build": "tsc && cp package.json README.md ./dist/",
-    "prebuild": "rm -rf dist && mkdir dist"
+    "prebuild": "cp ../../README.md ./README.md && rm -rf dist && mkdir dist"
   },
   "keywords": [
     "preact",
