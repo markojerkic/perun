@@ -41,8 +41,8 @@ const TestComponent2 = ({
           Idemo na osobu jerkic
         </button>
         <routes.plyersCountry.Link
-          country="bih"
-          playername="Modrić"
+          country="HBZ"
+          playername="STIPE"
           queryParams={{ godine: 38, ime: "Luka", prezime: "Modrić" }}
         >
           Na modrića
@@ -52,7 +52,7 @@ const TestComponent2 = ({
           <routes.plyersCountry.Link
             country="HBZ"
             playername="Stipe"
-            queryParams={{ godine: 38, ime: "Luka", prezime: "Boban" }}
+            queryParams={{ godine: 28, ime: "Luka", prezime: "Boban" }}
           >
             Test route
           </routes.plyersCountry.Link>

@@ -2,11 +2,7 @@ import {
   AsyncRouteParamsWithOptionalQueryParams,
   RouteParamsWithOptionalQueryParams,
 } from "./types";
-import {
-  objectOutputType,
-  ZodRawShape,
-  ZodTypeAny,
-} from "zod";
+import { objectOutputType, ZodRawShape, ZodTypeAny } from "zod";
 import { currentQueryParams, currentRoute } from "./router";
 
 export const strOrNum = (s: string) => {
@@ -129,12 +125,7 @@ export const matches = <
   currentRoute: string;
   routerPattern: TRoute;
 }):
-  | RouteParamsWithOptionalQueryParams<
-      TRoute,
-      TValidType,
-      Catchall,
-      Output
-    >
+  | RouteParamsWithOptionalQueryParams<TRoute, TValidType, Catchall, Output>
   | undefined => {
   const routeParts = createPathParts(testRoute);
 
@@ -176,12 +167,7 @@ export const matches = <
   return {
     ...pathParams,
     queryParams: currentQueryParams.value,
-  } as RouteParamsWithOptionalQueryParams<
-    TRoute,
-    TValidType,
-    Catchall,
-    Output
-  >;
+  } as RouteParamsWithOptionalQueryParams<TRoute, TValidType, Catchall, Output>;
 };
 
 export const changePath = ({

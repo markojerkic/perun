@@ -194,11 +194,13 @@ export const App = () => {
         }),
     }
 ```
+
 ### Link
 
 The `Link` is a very handy typesafe wrapper around classic HTML `<a href="http://...">Link</a>` tag.
 You use it as such:
-``` tsx
+
+```tsx
 <routes.plyersCountry.Link
   playername="Marko"
   country="Hrvatska"
@@ -208,14 +210,15 @@ You use it as such:
 </routes.plyersCountry.Link>
 ```
 
-- The `routes` is the variable containing created routes as shown in  [this section](#example-with-three-routes). This handy `Link` component is why you should not inline the routes creation, rather create them as a static variable and export them.
+- The `routes` is the variable containing created routes as shown in [this section](#example-with-three-routes). This handy `Link` component is why you should not inline the routes creation, rather create them as a static variable and export them.
 - Dynamic route variables are referenced each individually (in the example above, those would be `playername` and `country`), and query parameters are bundled together, and they are always optional.
 - Anything passed as children to this component will be rendered as the contents of the underlying `<a>` tag.
 
 ### routeTo
+
 Similarly to the [`Link`](#link) component, this a typesafe way to change the route.
 
-``` tsx
+```tsx
 routes.plyersCountry.routeTo({
   playername: "stipe",
   country: "hrv",
@@ -226,18 +229,21 @@ routes.plyersCountry.routeTo({
   },
 });
 ```
+
 - Unlike `Link`, this does not render anything, as this is meant to be used in a callback of some sorts.
-- The `routes` is the variable containing created routes as shown in  [this section](#example-with-three-routes). This handy `Link` component is why you should not inline the routes' creation, rather create them as a static variable and export them.
+- The `routes` is the variable containing created routes as shown in [this section](#example-with-three-routes). This handy `Link` component is why you should not inline the routes' creation, rather create them as a static variable and export them.
 - Dynamic route variables are referenced each individually (in the example above, those would be `playername` and `country`), and query parameters are bundled together, and they are always optional.
 
 ### Router
 
 The `Router` component is set where you want to bootstrap your components selected by the current route.
-``` tsx
+
+```tsx
 <Router routes={routes}>
   <NoRoutesMatch />
 </Router>
 ```
+
 - `routes`
-    - Object containing created routes. This could be inlined, but if you want to use the typesafe [`Link`](#link) component or the typesafe [`routeTo`](#routeto) function, you should save the route in a separate route, which you would ideally export.
+  - Object containing created routes. This could be inlined, but if you want to use the typesafe [`Link`](#link) component or the typesafe [`routeTo`](#routeto) function, you should save the route in a separate route, which you would ideally export.
 - The `Router` component also takes children components, which will be displayed if no matching route is found. It is esentially used as the 404 section.
