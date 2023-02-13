@@ -40,9 +40,23 @@ const TestComponent2 = ({
         <button className="bg-blue-300" onClick={() => toPerson()}>
           Idemo na osobu jerkic
         </button>
-          <routes.plyersCountry.Link country="bih" playername="Modrić" queryParams={{godine: 38, ime: 'Luka', prezime: 'Modrić'}}>
+        <routes.plyersCountry.Link
+          country="bih"
+          playername="Modrić"
+          queryParams={{ godine: 38, ime: "Luka", prezime: "Modrić" }}
+        >
           Na modrića
+          <div className="h-screen">test</div>
+        </routes.plyersCountry.Link>
+        <div className="bg-violet-200 mb-10">
+          <routes.plyersCountry.Link
+            country="HBZ"
+            playername="Stipe"
+            queryParams={{ godine: 38, ime: "Luka", prezime: "Boban" }}
+          >
+            Test route
           </routes.plyersCountry.Link>
+        </div>
       </div>
     </>
   );

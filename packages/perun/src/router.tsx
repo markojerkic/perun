@@ -4,7 +4,13 @@ import {
   FunctionalComponent,
   FunctionComponent,
 } from "preact";
-import { useCallback, useEffect, useMemo, useState } from "preact/hooks";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "preact/hooks";
 import {
   objectInputType,
   objectOutputType,
@@ -266,14 +272,26 @@ const RouteRenderer = <T,>({
     }
   }, [Renderer, isAsync, props]);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [props, Renderer]);
+
   if (!isAsync) {
-    // @ts-ignore
-    return <Renderer {...props} />;
+    return (
+      <>
+        {/* @ts-ignore */}
+        <Renderer {...props} />
+      </>
+    );
   }
 
   if (!AsyncComponent) {
     return <>Loading...</>;
   }
 
-  return <AsyncComponent {...props} />;
+  return (
+    <>
+      <AsyncComponent {...props} />
+    </>
+  );
 };
