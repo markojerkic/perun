@@ -180,6 +180,7 @@ export const Router: FunctionComponent<Router> = ({ routes, children }) => {
 
   const updateCurrentLocation = useCallback(() => {
     currentRoute.value = window.location.pathname;
+    currentQueryParams.value = parseWindowQueryParams();
   }, []);
 
   useEffect(() => {

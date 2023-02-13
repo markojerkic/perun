@@ -40,6 +40,9 @@ const TestComponent2 = ({
         <button className="bg-blue-300" onClick={() => toPerson()}>
           Idemo na osobu jerkic
         </button>
+          <routes.plyersCountry.Link country="bih" playername="Modrić" queryParams={{godine: 38, ime: 'Luka', prezime: 'Modrić'}}>
+          Na modrića
+          </routes.plyersCountry.Link>
       </div>
     </>
   );
