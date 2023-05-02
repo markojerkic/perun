@@ -8,7 +8,6 @@ import {
   useCallback,
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "preact/hooks";
 import {
@@ -55,7 +54,7 @@ const Link = <
 }) => {
   const routeObject = useMemo(
     () => routeTo({ routePattern, routeParams }),
-    [routeParams]
+    [routeParams, routePattern]
   );
 
   const href = useMemo(() => routeObjectToPath(routeObject), [routeObject]);
@@ -100,10 +99,11 @@ export const createAsyncRoute = <
     searchParamsValidator,
     Link: (props) => (
       <Link
-        children={props.children}
         routePattern={routePattern}
         routeParams={{ ...props, children: undefined }}
-      />
+      >
+        {props.children}
+      </Link>
     ),
     routeTo: (routeParams) =>
       changePath(routeTo({ routePattern, routeParams })),

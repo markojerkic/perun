@@ -26,7 +26,7 @@ export const parseWindowQueryParams = () => {
     } else {
       if (Array.isArray(values)) {
         values = [...values, newEntry];
-      } else {
+      } else if (values !== undefined) {
         values = [values, newEntry];
       }
     }
@@ -75,6 +75,23 @@ export const routeTo = <
   };
 };
 
+export const objectToQueryParams = (queryParamsObject: any) => {
+  const queryParamsString = Object.keys(queryParamsObject)
+    .filter((key) => Object.hasOwn(queryParamsObject, key))
+    .map((key) => ({ key, value: queryParamsObject[key] }))
+    .filter((kv) => kv.value !== undefined)
+    .map((entry) => {
+      if (Array.isArray(entry.value)) {
+        return entry.value.map((value) => `${entry.key}=${value}`);
+      }
+      return [`${entry.key}=${entry.value}`];
+    })
+    .flat()
+    .join("&");
+
+  return queryParamsString;
+};
+
 export const routeObjectToPath = ({
   path,
   queryParams,
@@ -82,23 +99,12 @@ export const routeObjectToPath = ({
   path: string;
   queryParams: any;
 }) => {
-  let queryParamsString;
+  let queryParamsString = "";
   if (queryParams) {
-    queryParamsString = Object.keys(queryParams)
-      .filter((key) => Object.hasOwn(queryParams, key))
-      // @ts-ignore
-      .map((key) => ({ key, value: queryParams[key] }))
-      .map((entry) => {
-        if (Array.isArray(entry.value)) {
-          return entry.value.map((value) => `${entry.key}=${value}`).join("&");
-        }
-        return `${entry.key}=${entry.value}`;
-      })
-      .join("&");
+    queryParamsString = `?${objectToQueryParams(queryParams)}`;
   }
-  return `${path}${
-    queryParamsString && queryParamsString !== "" ? `?${queryParamsString}` : ""
-  }`;
+
+  return `${path}${queryParamsString}`;
 };
 
 export const splitRoute = (route: string) =>

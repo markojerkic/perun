@@ -21,15 +21,15 @@ const TestComponent2 = ({
   country: string;
   player: string;
   queryParams:
-    | {
-        ime: string;
-        prezime?: string;
-        godine: number;
-      }
-    | undefined;
+  | {
+    ime: string;
+    prezime?: string;
+    godine: number;
+  }
+  | undefined;
 }) => {
   const toPerson = useCallback(() => {
-    routes.lastNameId.routeTo({ lastname: "jerkic" });
+    routes.lastNameId.routeTo({ lastname: "jerkic", queryParams: {} });
   }, []);
   return (
     <>
@@ -77,6 +77,19 @@ export const routes = {
         queryParams={props.queryParams}
       />
     ),
+  }),
+
+  queryStrings: createRoute({
+    routePattern: "/search",
+    searchParamsValidator: z.object({
+      q: z.string().array()
+    }),
+    renderComponent: (props) => (
+      <div>
+        {JSON.stringify(props)}
+      </div>
+    )
+
   }),
 
   lastNameId: createRoute({
@@ -130,10 +143,17 @@ export const App = () => {
     <>
       <p>Bok, ovo je moj router :)</p>
       <div class="flex space-x-4 my-4">
+        <div class="bg-lime-300">
+          <routes.queryStrings.Link queryParams={{
+            q: ["test", "marko", "jerkić"]
+          }}>
+            Search
+          </routes.queryStrings.Link>
+        </div>
         <routes.plyersCountry.Link
           playername="Marko"
           country="Hrvatska"
-          queryParams={{ ime: "Marko", prezime: "Jerkić", godine: 22 }}
+          queryParams={{ ime: "Marko", prezime: undefined, godine: 22 }}
         >
           Na igrač marko ajde
         </routes.plyersCountry.Link>
