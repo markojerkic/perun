@@ -177,9 +177,9 @@ export const Router: FunctionComponent<Router> = ({ routes, children }) => {
           if (aPartsLength === bPartsLength) {
             return 0;
           } else if (aPartsLength > bPartsLength) {
-            return 1;
+            return -1;
           }
-          return -1;
+          return 1;
         }),
     [currentRoute.value, currentQueryParams.value, routes]
   );

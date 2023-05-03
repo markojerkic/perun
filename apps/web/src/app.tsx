@@ -108,6 +108,21 @@ export const routes = {
       )),
     searchParamsValidator: z.object({}),
   }),
+
+  search: createRoute({
+    routePattern: "/[lang?]/search/[var]",
+    renderComponent: (props) => (
+      <div>search</div>
+    ),
+    searchParamsValidator: z.object({})
+  }),
+  itemsets: createRoute({
+    routePattern: "/[lang?]/item-sets",
+    renderComponent: (props) => (
+      <div>itemSets</div>
+    ),
+    searchParamsValidator: z.object({})
+  }),
 };
 
 const NoRoutesMatch = () => {
